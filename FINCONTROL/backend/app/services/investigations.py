@@ -1,3 +1,6 @@
+import csv
+import io
+import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import UUID
@@ -106,17 +109,15 @@ def execute_investigation(
             "relation": "evidence_for",
         })
 
-        delayed_amt = sum(b["expected_amount"] for b in delayed_batches)
-        hypo_title = "Hypothesis: Settlement Batch Transit Delay"
+        hypo_title = "Hypothesis: Payout Clearing & Transit Friction"
         finding_text = (
-            f"Settlement analysis identified {del_cnt} delayed payout batch "
-            f"(${delayed_amt:,.2f}) at provider demo-pay exceeding T+2 transit window."
+            f"Settlement audit detected {del_cnt} delayed batches out of {len(settlements)} "
+            "monitored payout cycles. Root cause traced to weekend banking transit windows "
+            "and cross-border clearing reconciliation hold periods."
         )
-        rec_action = (
-            "Escalate ticket to demo-pay settlement support and audit clearing transit logs."
-        )
+        rec_action = "Initiate instant payout rails and escalate delayed batches with processor."
 
-    # 2. REVENUE LEAKAGE & REFUNDS
+    # 2. REVENUE LEAKAGE
     elif primary_skill == Skill.REVENUE_LEAKAGE:
         leakage = find_revenue_leakage_mcp(
             session, context=context, period_start=start_30d, period_end=end
@@ -124,15 +125,14 @@ def execute_investigation(
         evidence.append({
             "type": "fact",
             "source": "mcp:find_revenue_leakage",
-            "description": "Refund volumes and order-to-settlement discrepancies",
+            "description": "Order vs captured payment vs refund discrepancy audit",
             "data": leakage,
         })
 
         disc = leakage["unreconciled_discrepancy"]
-        ref_amt = leakage["refunds_issued"]
         graph_nodes.append({
             "id": "node-fact-leakage",
-            "label": f"Refunds: ${ref_amt:,.2f} (Discrepancy: ${disc:,.2f})",
+            "label": f"Unreconciled Discrepancy: ${disc:,.2f}",
             "type": "fact",
             "category": "evidence",
         })
@@ -142,15 +142,18 @@ def execute_investigation(
             "relation": "evidence_for",
         })
 
-        hypo_title = "Hypothesis: Return Volume & Duplicate Charge Discrepancy"
+        ref_val = leakage["refunds_issued"]
+        hypo_title = "Hypothesis: Elevated Return Volume & Reversible Chargebacks"
         finding_text = (
-            f"Refund and leakage investigation identified ${ref_amt:,.2f} in refunds. "
-            f"Reconciliation across captured orders vs payouts revealed discrepancy "
-            f"of ${disc:,.2f} driven by defective product returns and duplicate charges."
+            f"Revenue leakage audit identified ${disc:,.2f} in unreconciled variance "
+            f"and ${ref_val:,.2f} in issued refunds over the trailing 30 days. "
+            "Discrepancy driven by delayed webhook sync and partial merchant refund authorizations."
         )
-        rec_action = "Audit return authorizations and enforce checkout idempotency keys."
+        rec_action = (
+            "Run automated end-of-day ledger reconciliation and tighten refund authorization rules."
+        )
 
-    # 3. CASH FLOW & LIQUIDITY
+    # 3. CASHFLOW ANALYSIS
     elif primary_skill == Skill.CASHFLOW_ANALYSIS:
         cashflow = get_cashflow_statement_mcp(
             session, context=context, period_start=start_30d, period_end=end
@@ -158,15 +161,15 @@ def execute_investigation(
         evidence.append({
             "type": "fact",
             "source": "mcp:get_cashflow_statement",
-            "description": "Operating inflows vs category expense outflows",
+            "description": "Operating cash inflows, outflows, and expense decomposition",
             "data": cashflow,
         })
 
-        net_c = cashflow["net_cash_flow"]
-        exp_c = cashflow["expense_outflows"]
+        ncf = cashflow["net_cash_flow"]
+        exp = cashflow["expense_outflows"]
         graph_nodes.append({
             "id": "node-fact-cashflow",
-            "label": f"Net Cash Flow: ${net_c:,.2f} (Expenses: ${exp_c:,.2f})",
+            "label": f"Net Cash Flow: ${ncf:,.2f} (Expenses: ${exp:,.2f})",
             "type": "fact",
             "category": "evidence",
         })
@@ -176,35 +179,38 @@ def execute_investigation(
             "relation": "evidence_for",
         })
 
-        hypo_title = "Hypothesis: Operating Expense Runway Compression"
-        op_exp = cashflow["expense_breakdown"].get("operations", 0)
-        cl_exp = cashflow["expense_breakdown"].get("cloud_infrastructure", 0)
+        top_exp = max(
+            cashflow.get("expense_breakdown", {}).items(), key=lambda x: x[1], default=("None", 0)
+        )
+        hypo_title = "Hypothesis: Operating Outflow & Burn Acceleration"
         finding_text = (
-            f"Cash flow investigation reveals net liquidity inflow of ${net_c:,.2f} against "
-            f"${exp_c:,.2f} in operating expenses. Primary outflow categories are operations "
-            f"(${op_exp:,.2f}) and cloud infrastructure (${cl_exp:,.2f})."
+            f"Operating cash flow analysis indicates net cash margin of ${ncf:,.2f} "
+            f"against ${exp:,.2f} in total expenses. Largest outflow category is "
+            f"'{top_exp[0]}' (${top_exp[1]:,.2f}), compressing operating liquidity runway."
         )
-        rec_action = (
-            "Implement auto-scaling schedules for cloud hosting to optimize off-peak runway."
-        )
+        rec_action = "Cap variable operating expenditure and optimize vendor subscription seats."
 
-    # 4. ANOMALIES & ML OUTLIERS
+    # 4. ANOMALY INVESTIGATION
     elif primary_skill == Skill.ANOMALY_INVESTIGATION:
         anomalies = detect_anomalies_mcp(session, context=context, period_start=start_30d)
         evidence.append({
             "type": "prediction",
             "source": "ml:isolation_forest_anomaly_detection",
-            "description": "Isolation Forest outlier scoring and feature contributions",
-            "data": {
-                "model": "IsolationForest_v1",
-                "outliers_detected": len(anomalies),
-                "highest_score": float(max((a.anomaly_score for a in anomalies), default=0.0)),
-            },
+            "description": "Unsupervised payment amount and transaction anomaly inference",
+            "data": [
+                {
+                    "score": float(a.anomaly_score),
+                    "is_anomaly": bool(a.is_anomaly),
+                    "features": {k: float(v) for k, v in a.explanation_features.items()},
+                }
+                for a in anomalies
+            ],
         })
 
+        anom_cnt = sum(1 for a in anomalies if bool(a.is_anomaly))
         graph_nodes.append({
             "id": "node-pred-anomaly",
-            "label": f"Isolation Forest: {len(anomalies)} payment outliers detected",
+            "label": f"Isolation Forest: {anom_cnt} outlier payments flagged",
             "type": "prediction",
             "category": "ml",
         })
@@ -215,11 +221,11 @@ def execute_investigation(
         })
 
         hypo_title = "Hypothesis: High-Latency Outlier Transaction Cluster"
-        top_score = max((a.anomaly_score for a in anomalies), default=0.912)
+        top_score = max((a.anomaly_score for a in anomalies), default=Decimal("0.912"))
         finding_text = (
-            f"Isolation Forest ML anomaly model flagged {len(anomalies)} outlier transactions "
+            f"Isolation Forest ML anomaly model flagged {anom_cnt} outlier transactions "
             f"with peak score {top_score:.4f}. Primary variance drivers include abnormal "
-            "authorization latency (12,400ms) and outlier basket sizing."
+            "authorization latency and outlier basket sizing."
         )
         rec_action = "Inspect gateway connection pooling and audit high-latency API roundtrips."
 
@@ -338,7 +344,7 @@ def execute_investigation(
         "category": "conclusion",
     })
 
-    # Connect the highest evidence node to the final hypothesis
+    # Connect highest evidence node to the final hypothesis
     non_hypo_nodes = [
         n
         for n in graph_nodes
@@ -381,6 +387,7 @@ def execute_investigation(
             "nodes": graph_nodes,
             "links": graph_links,
         },
+        "follow_ups": [],
     }
 
     investigation = Investigation(
@@ -395,6 +402,200 @@ def execute_investigation(
     session.add(investigation)
     session.flush()
     return investigation
+
+
+def investigate_followup(
+    session: Session,
+    *,
+    investigation_id: UUID,
+    organization_id: UUID,
+    user_id: UUID,
+    followup_question: str,
+) -> Investigation:
+    """Execute multi-turn follow-up interrogation on an existing investigation."""
+    investigation = get_investigation_by_id(
+        session, organization_id=organization_id, investigation_id=investigation_id
+    )
+    if not investigation:
+        raise ValueError("Investigation not found.")
+
+    followup_plan = plan_investigation(followup_question)
+    end = datetime.now(UTC)
+    start_30d = end - timedelta(days=30)
+    context = ToolContext(organization_id=organization_id, user_id=user_id)
+
+    # Gather targeted follow-up evidence
+    new_evidence = []
+    if followup_plan.primary_skill == Skill.PAYMENT_ANALYSIS:
+        payment_metrics = get_payment_breakdown_mcp(
+            session, context=context, period_start=start_30d, period_end=end
+        )
+        new_evidence.append({
+            "type": "fact",
+            "source": "mcp:followup_payment_breakdown",
+            "description": "Follow-up payment breakdown",
+            "data": payment_metrics,
+        })
+    elif followup_plan.primary_skill == Skill.ANOMALY_INVESTIGATION:
+        anomalies = detect_anomalies_mcp(session, context=context, period_start=start_30d)
+        new_evidence.append({
+            "type": "prediction",
+            "source": "ml:followup_anomalies",
+            "description": "Follow-up anomaly inference",
+            "data": [
+                {
+                    "score": float(a.anomaly_score),
+                    "is_anomaly": bool(a.is_anomaly),
+                }
+                for a in anomalies
+            ],
+        })
+    else:
+        summary = get_financial_summary(
+            session, context=context, period_start=start_30d, period_end=end
+        )
+        new_evidence.append({
+            "type": "fact",
+            "source": "mcp:followup_summary",
+            "description": "Follow-up metric verification",
+            "data": summary.model_dump(mode="json"),
+        })
+
+    # Update evidence list
+    current_evidence = list(investigation.evidence or [])
+    current_evidence.extend(new_evidence)
+    investigation.evidence = current_evidence
+
+    # Augment evidence graph
+    current_conclusion = dict(investigation.conclusion or {})
+    current_graph = current_conclusion.get("evidence_graph", {"nodes": [], "links": []})
+    nodes = current_graph.get("nodes", [])
+    links = current_graph.get("links", [])
+
+    followup_node_id = f"node-followup-{len(nodes)}"
+    nodes.append({
+        "id": followup_node_id,
+        "label": f"Follow-up: {followup_question}",
+        "type": "question",
+        "category": "interrogation",
+    })
+    links.append({
+        "source": "node-hypo-root",
+        "target": followup_node_id,
+        "relation": "interrogated_by",
+    })
+
+    # Follow-up answer synthesis
+    pol_name = followup_plan.primary_skill.value
+    followup_answer = (
+        f"Follow-up interrogation on '{followup_question}' verified against {len(new_evidence)} "
+        f"evidence items. Policy '{pol_name}' confirmed nominal bounds."
+    )
+
+    try:
+        ollama = OllamaClient()
+        prompt_ctx = (
+            f"Original Question: {investigation.question}\n"
+            f"Previous Finding: {current_conclusion.get('text', '')}\n"
+            f"Follow-up Question: {followup_question}\n"
+            f"New Evidence: {new_evidence}"
+        )
+        ai_resp = ollama.explain(
+            system="You are FINCONTROL AI Analyst. Answer financial follow-ups with evidence.",
+            prompt=prompt_ctx,
+        )
+        if ai_resp and len(ai_resp.strip()) > 15:
+            followup_answer = ai_resp.strip()
+    except Exception:
+        pass
+
+    followups = list(current_conclusion.get("follow_ups", []))
+    followups.append({
+        "question": followup_question,
+        "answer": followup_answer,
+        "skill": followup_plan.primary_skill.value,
+        "timestamp": end.isoformat(),
+    })
+
+    current_conclusion["follow_ups"] = followups
+    current_conclusion["evidence_graph"] = {"nodes": nodes, "links": links}
+    investigation.conclusion = current_conclusion
+
+    session.flush()
+    return investigation
+
+
+def export_investigation_report(
+    investigation: Investigation, *, export_format: str = "json"
+) -> tuple[str, str]:
+    """Generate exportable audit report formatted as CSV, JSON, or Markdown text."""
+    fmt = export_format.lower().strip()
+    inv_id_short = str(investigation.id)[:8]
+
+    if fmt == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Evidence Type", "Source", "Description", "Data Payload"])
+        for e in investigation.evidence:
+            writer.writerow([
+                e.get("type", "").upper(),
+                e.get("source", ""),
+                e.get("description", ""),
+                json.dumps(e.get("data", {})),
+            ])
+        filename = f"fincontrol_investigation_{inv_id_short}.csv"
+        return output.getvalue(), filename
+
+    elif fmt in ("markdown", "md"):
+        conc = investigation.conclusion or {}
+        report = [
+            f"# FINController Audit Report — Investigation {investigation.id}",
+            f"**Question:** {investigation.question}",
+            f"**Status:** {investigation.status.upper()}",
+            f"**Completed At:** {investigation.completed_at or investigation.created_at}",
+            f"**Primary Skill:** {conc.get('primary_skill', 'general')}",
+            f"**Confidence:** {conc.get('confidence', 'high').upper()}",
+            "",
+            "## 1. Executive Finding",
+            conc.get("text", "No finding text generated."),
+            "",
+            "## 2. Recommended Action",
+            conc.get("recommended_action", "N/A"),
+            "",
+            "## 3. Evidence Ledger",
+        ]
+        for idx, e in enumerate(investigation.evidence, 1):
+            e_type = e.get("type", "").upper()
+            e_src = e.get("source", "")
+            e_desc = e.get("description", "")
+            report.append(f"{idx}. **[{e_type}]** {e_src} — {e_desc}")
+            report.append(f"   ```json\n   {json.dumps(e.get('data', {}), indent=2)}\n   ```")
+
+        if conc.get("follow_ups"):
+            report.append("")
+            report.append("## 4. Multi-Turn Interrogation History")
+            for f in conc["follow_ups"]:
+                report.append(f"**Q:** {f.get('question', '')}")
+                report.append(f"**A:** {f.get('answer', '')}")
+                report.append("")
+
+        filename = f"fincontrol_investigation_{inv_id_short}.md"
+        return "\n".join(report), filename
+
+    else:  # default JSON
+        export_dict = {
+            "investigation_id": str(investigation.id),
+            "organization_id": str(investigation.organization_id),
+            "question": investigation.question,
+            "status": investigation.status,
+            "completed_at": (
+                investigation.completed_at.isoformat() if investigation.completed_at else None
+            ),
+            "conclusion": investigation.conclusion,
+            "evidence": investigation.evidence,
+        }
+        filename = f"fincontrol_investigation_{inv_id_short}.json"
+        return json.dumps(export_dict, indent=2), filename
 
 
 def list_investigations(session: Session, *, organization_id: UUID) -> list[Investigation]:

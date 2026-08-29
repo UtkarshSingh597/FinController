@@ -54,10 +54,26 @@ export interface AnomalyItem {
   detected_at: string;
 }
 
+export interface AlertItem {
+  id: string;
+  severity: "critical" | "high" | "medium" | "low" | string;
+  title: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface AlertActionResponse {
+  success: boolean;
+  alert_id: string;
+  status: string;
+  message: string;
+}
+
 export interface EvidenceGraphNode {
   id: string;
   label: string;
-  type: "question" | "skill" | "fact" | "prediction" | "hypothesis" | "action";
+  type: "question" | "skill" | "fact" | "prediction" | "hypothesis" | "simulation" | "action";
   category?: string;
 }
 
@@ -70,6 +86,13 @@ export interface EvidenceGraphLink {
 export interface EvidenceGraph {
   nodes: EvidenceGraphNode[];
   links: EvidenceGraphLink[];
+}
+
+export interface InvestigationFollowUp {
+  question: string;
+  answer: string;
+  skill: string;
+  timestamp: string;
 }
 
 export interface InvestigationRecord {
@@ -86,12 +109,14 @@ export interface InvestigationRecord {
   }>;
   conclusion: {
     type: string;
+    title?: string;
     text: string;
     primary_skill?: string;
     skills?: string[];
     confidence?: string;
     recommended_action?: string;
     evidence_graph?: EvidenceGraph;
+    follow_ups?: InvestigationFollowUp[];
   } | null;
   created_at: string;
   completed_at: string | null;
@@ -104,4 +129,15 @@ export interface SimulationResult {
   assumption: string;
   scenario_details: Record<string, any>;
   classification: string;
+}
+
+export interface CSVIngestionResponse {
+  success: boolean;
+  total_processed: number;
+  orders_created: number;
+  payments_created: number;
+  expenses_created: number;
+  refunds_created: number;
+  settlements_created: number;
+  errors: string[];
 }

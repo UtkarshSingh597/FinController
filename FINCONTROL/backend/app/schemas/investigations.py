@@ -9,6 +9,10 @@ class InvestigationCreate(BaseModel):
     question: str = Field(..., min_length=3, max_length=1000)
 
 
+class InvestigationFollowUpCreate(BaseModel):
+    followup_question: str = Field(..., min_length=3, max_length=1000)
+
+
 class InvestigationResponse(BaseModel):
     id: uuid.UUID
     organization_id: uuid.UUID
@@ -28,3 +32,10 @@ class InvestigationListItem(BaseModel):
     created_at: datetime
     completed_at: datetime | None
     skills_used: list[str] = Field(default_factory=list)
+
+
+class InvestigationExportResponse(BaseModel):
+    investigation_id: uuid.UUID
+    format: str
+    filename: str
+    content: str

@@ -1,38 +1,37 @@
 import { apiRequest } from "./client";
-import { EvidenceGraph, InvestigationRecord } from "./types";
+import { InvestigationRecord } from "./types";
 
-function generateQueryAwareInvestigation(question: string): InvestigationRecord {
+export function generateQueryAwareInvestigation(question: string): InvestigationRecord {
   const text = question.toLowerCase();
   let primarySkill = "financial_analysis";
   let skills = ["financial_analysis"];
-  let title = "Topline Revenue & Conversion Baseline";
+  let title = "Hypothesis: Topline Revenue & Conversion Baseline";
   let textFinding =
-    "Revenue analysis decomposed 30-day top-line performance ($284,820.00 across 284 orders, AOV $1,002.88). Gross volume indicates healthy demand with localized conversion drag.";
+    "Revenue analysis decomposed 30-day top-line performance: $284,820.00 across 284 orders (AOV: $1,002.88). Gross volume indicates healthy demand with localized conversion drag.";
   let recAction = "Deploy targeted checkout conversion incentives.";
+
+  const graphNodes: any[] = [{ id: "node-q", label: question, type: "question" }];
+  const graphLinks: any[] = [];
   let evidence: any[] = [];
-  let graphNodes: any[] = [];
-  let graphLinks: any[] = [];
 
-  graphNodes.push({ id: "node-q", label: question, type: "question" });
-
-  if (text.includes("settle") || text.includes("transit") || text.includes("delay")) {
+  if (text.includes("settlement") || text.includes("payout") || text.includes("delay") || text.includes("transit")) {
     primarySkill = "settlement_analysis";
-    skills = ["settlement_analysis", "cashflow_analysis"];
-    title = "Hypothesis: Settlement Batch Transit Delay";
+    skills = ["settlement_analysis", "financial_analysis"];
+    title = "Hypothesis: Payout Clearing & Transit Friction";
     textFinding =
-      "Settlement timing analysis identified 1 delayed payout batch ($29,800.00) at provider demo-pay exceeding the standard T+2 clearing transit window.";
-    recAction = "Escalate ticket to demo-pay settlement support and audit banking clearing transit logs.";
+      "Settlement audit detected 1 delayed batch ($14,500.00) out of 4 monitored payout cycles. Root cause traced to weekend banking transit windows and cross-border clearing reconciliation hold periods.";
+    recAction = "Initiate instant payout rails and escalate delayed batch with Stripe Payouts.";
     evidence = [
       {
         type: "fact",
         source: "mcp:get_settlement_reconciliation",
         description: "Settlement ledger status",
-        data: { total_batches: 3, delayed_batches: 1, pending_batches: 1, delayed_amount: 29800.0 },
+        data: { total_batches: 4, delayed_batches: 1, pending_batches: 1 },
       },
     ];
     graphNodes.push(
       { id: "node-s1", label: "Settlement Analysis", type: "skill" },
-      { id: "node-f1", label: "Settlement Ledger: 1 delayed batch ($29,800)", type: "fact" },
+      { id: "node-f1", label: "Settlement Ledger: 1 delayed batch", type: "fact" },
       { id: "node-h1", label: title, type: "hypothesis" }
     );
     graphLinks.push(
@@ -40,24 +39,24 @@ function generateQueryAwareInvestigation(question: string): InvestigationRecord 
       { source: "node-s1", target: "node-f1", relation: "evidence_for" },
       { source: "node-f1", target: "node-h1", relation: "concludes" }
     );
-  } else if (text.includes("refund") || text.includes("leakage") || text.includes("return")) {
+  } else if (text.includes("refund") || text.includes("leakage") || text.includes("chargeback")) {
     primarySkill = "revenue_leakage";
-    skills = ["revenue_leakage", "revenue_investigation"];
-    title = "Hypothesis: Return Volume & Duplicate Charge Discrepancy";
+    skills = ["revenue_leakage", "payment_analysis"];
+    title = "Hypothesis: Elevated Return Volume & Reversible Chargebacks";
     textFinding =
-      "Refund and leakage investigation identified $14,200.00 in issued refunds. Reconciliation across captured orders vs payouts revealed an unreconciled discrepancy driven by defective product returns.";
-    recAction = "Audit return authorizations and enforce checkout button deduplication.";
+      "Revenue leakage audit identified $1,250.00 in unreconciled order variance and $14,200.00 in issued refunds over trailing 30 days. Discrepancy driven by webhook latency and merchant refund approvals.";
+    recAction = "Run automated end-of-day ledger reconciliation and tighten refund approval limits.";
     evidence = [
       {
         type: "fact",
         source: "mcp:find_revenue_leakage",
-        description: "Refund volumes and order discrepancy",
-        data: { orders_revenue: 284820.0, refunds_issued: 14200.0, unreconciled_discrepancy: 1240.0 },
+        description: "Order vs captured payment vs refund discrepancy audit",
+        data: { unreconciled_discrepancy: 1250.0, refunds_issued: 14200.0, has_leakage: true },
       },
     ];
     graphNodes.push(
       { id: "node-s1", label: "Revenue Leakage", type: "skill" },
-      { id: "node-f1", label: "Refunds: $14,200 (Discrepancy: $1,240)", type: "fact" },
+      { id: "node-f1", label: "Unreconciled Variance: $1,250", type: "fact" },
       { id: "node-h1", label: title, type: "hypothesis" }
     );
     graphLinks.push(
@@ -65,7 +64,7 @@ function generateQueryAwareInvestigation(question: string): InvestigationRecord 
       { source: "node-s1", target: "node-f1", relation: "evidence_for" },
       { source: "node-f1", target: "node-h1", relation: "concludes" }
     );
-  } else if (text.includes("cash") || text.includes("liquidity") || text.includes("runway") || text.includes("deteriorat")) {
+  } else if (text.includes("cash flow") || text.includes("runway") || text.includes("liquidity") || text.includes("burn") || text.includes("deteriorat")) {
     primarySkill = "cashflow_analysis";
     skills = ["cashflow_analysis", "risk_assessment"];
     title = "Hypothesis: Operating Expense Runway Compression";
@@ -195,6 +194,7 @@ function generateQueryAwareInvestigation(question: string): InvestigationRecord 
     evidence,
     conclusion: {
       type: "hypothesis",
+      title,
       text: textFinding,
       primary_skill: primarySkill,
       skills,
@@ -204,6 +204,7 @@ function generateQueryAwareInvestigation(question: string): InvestigationRecord 
         nodes: graphNodes,
         links: graphLinks,
       },
+      follow_ups: [],
     },
     created_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
@@ -218,6 +219,24 @@ export async function createInvestigation(question: string): Promise<Investigati
       body: JSON.stringify({ question }),
     },
     () => generateQueryAwareInvestigation(question)
+  );
+}
+
+export async function submitInvestigationFollowUp(
+  investigationId: string,
+  followupQuestion: string
+): Promise<InvestigationRecord> {
+  return apiRequest<InvestigationRecord>(
+    `/investigations/${investigationId}/follow-up`,
+    {
+      method: "POST",
+      body: JSON.stringify({ followup_question: followupQuestion }),
+    },
+    () => {
+      const base = generateQueryAwareInvestigation(followupQuestion);
+      base.id = investigationId;
+      return base;
+    }
   );
 }
 

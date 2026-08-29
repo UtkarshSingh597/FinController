@@ -9,7 +9,11 @@ import {
 import { EvidenceGraphViewer } from "../../components/investigation/evidence-graph";
 import { Badge } from "../../components/ui/badge";
 import { NavSidebar } from "../../components/ui/nav-sidebar";
-import { createInvestigation, InvestigationRecord } from "../../lib/api";
+import {
+  createInvestigation,
+  submitInvestigationFollowUp,
+  InvestigationRecord,
+} from "../../lib/api";
 
 function AnalystContent() {
   const searchParams = useSearchParams();
@@ -20,6 +24,10 @@ function AnalystContent() {
   const [completedSteps, setCompletedSteps] = useState<InvestigationStepKey[]>([]);
   const [currentStep, setCurrentStep] = useState<InvestigationStepKey | undefined>(undefined);
   const [result, setResult] = useState<InvestigationRecord | null>(null);
+
+  // Multi-Turn Interrogation State
+  const [followupQuestion, setFollowupQuestion] = useState("");
+  const [isFollowupLoading, setIsFollowupLoading] = useState(false);
 
   const sampleQuestions = [
     "Why did revenue fall over the last 3 days?",
@@ -70,6 +78,57 @@ function AnalystContent() {
     }
   };
 
+  const handleFollowUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!result || !followupQuestion.trim() || isFollowupLoading) return;
+
+    setIsFollowupLoading(true);
+    try {
+      const updated = await submitInvestigationFollowUp(result.id, followupQuestion);
+      setResult(updated);
+      setFollowupQuestion("");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsFollowupLoading(false);
+    }
+  };
+
+  const handleExport = (format: "json" | "csv" | "markdown") => {
+    if (!result) return;
+    const invId = result.id;
+    const token = typeof window !== "undefined" ? localStorage.getItem("fincontrol_token") : null;
+    const url = `http://localhost:8000/api/v1/investigations/${invId}/export?format=${format}`;
+
+    // Trigger direct download or fallback to client JSON
+    if (token) {
+      fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => res.blob())
+        .then((blob) => {
+          const blobUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = `fincontrol_investigation_${invId.slice(0, 8)}.${format === "markdown" ? "md" : format}`;
+          a.click();
+          window.URL.revokeObjectURL(blobUrl);
+        })
+        .catch(() => {
+          downloadClientJSON();
+        });
+    } else {
+      downloadClientJSON();
+    }
+  };
+
+  const downloadClientJSON = () => {
+    if (!result) return;
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 2));
+    const a = document.createElement("a");
+    a.href = dataStr;
+    a.download = `fincontrol_investigation_${result.id.slice(0, 8)}.json`;
+    a.click();
+  };
+
   useEffect(() => {
     if (initialQuery) {
       handleStartInvestigation(initialQuery);
@@ -83,63 +142,52 @@ function AnalystContent() {
       <main className="main-content">
         <header className="page-header">
           <div>
-            <div className="eyebrow">AI ANALYST / AUTONOMOUS INVESTIGATION WORKSPACE</div>
-            <h1 className="page-title">Financial Investigation Engine</h1>
+            <div className="eyebrow">AUTONOMOUS INVESTIGATION WORKSPACE</div>
+            <h1 className="page-title">AI Financial Analyst</h1>
             <p className="page-subtitle">
-              Policy-driven multi-skill analysis coordinating deterministic services, ML outlier scoring, and auditable reasoning.
+              Interrogate financial books, trace root-cause evidence, and verify deterministic hypotheses.
             </p>
           </div>
         </header>
 
-        {/* Question Form */}
-        <section className="panel" style={{ marginBottom: "24px" }}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleStartInvestigation();
-            }}
-          >
-            <label className="form-label" style={{ fontSize: "14px" }}>
-              Submit a Financial Inquiry
-            </label>
-            <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Why did revenue decline yesterday?"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                disabled={isInvestigating}
-                style={{ fontSize: "15px", padding: "12px 16px" }}
-              />
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!question.trim() || isInvestigating}
-                style={{ minWidth: "160px" }}
-              >
-                {isInvestigating ? "Investigating..." : "✦ Start Investigation"}
-              </button>
-            </div>
-          </form>
+        {/* Input Query Bar */}
+        <section className="panel">
+          <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+            <input
+              type="text"
+              className="input-field"
+              style={{ flex: 1, fontSize: "15px" }}
+              placeholder="Ask why money moved (e.g. 'Why did revenue drop yesterday?', 'Which payments are anomalous?')..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleStartInvestigation()}
+              disabled={isInvestigating}
+            />
+            <button
+              className="btn btn-primary"
+              style={{ padding: "0 24px" }}
+              onClick={() => handleStartInvestigation()}
+              disabled={isInvestigating || !question.trim()}
+            >
+              {isInvestigating ? "Investigating..." : "Investigate →"}
+            </button>
+          </div>
 
-          {/* Preset queries */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "14px" }}>
-            <span style={{ fontSize: "12px", color: "var(--text-muted)", alignSelf: "center" }}>
-              Try sample inquiry:
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>
+              Sample Inquiries:
             </span>
             {sampleQuestions.map((sq, i) => (
               <button
                 key={i}
-                type="button"
                 onClick={() => {
                   setQuestion(sq);
                   handleStartInvestigation(sq);
                 }}
                 disabled={isInvestigating}
                 style={{
-                  background: "#f0f4f1",
-                  border: "1px solid #d4dfd8",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid var(--border-subtle)",
                   padding: "4px 10px",
                   borderRadius: 4,
                   fontSize: "12px",
@@ -199,12 +247,12 @@ function AnalystContent() {
                     <span
                       key={s}
                       style={{
-                        background: "#e8f0ec",
+                        background: "rgba(183, 242, 106, 0.15)",
                         padding: "2px 8px",
                         borderRadius: 4,
                         fontFamily: "var(--font-mono)",
                         fontSize: "11px",
-                        color: "#163f35",
+                        color: "var(--accent-lime)",
                       }}
                     >
                       {s}
@@ -230,17 +278,40 @@ function AnalystContent() {
 
         {/* Investigation Conclusion & Evidence Workspace */}
         {result && (
-          <section className="panel" style={{ marginTop: "24px", border: "1px solid #b7f26a" }}>
-            <div className="panel-header" style={{ borderBottomColor: "#e5f0e8" }}>
+          <section className="panel" style={{ marginTop: "24px", border: "1px solid var(--accent-lime)" }}>
+            <div className="panel-header">
               <div>
-                <div className="eyebrow" style={{ color: "#065f46" }}>
+                <div className="eyebrow" style={{ color: "var(--accent-lime)" }}>
                   AUDITABLE CONCLUSION
                 </div>
                 <h2 style={{ fontSize: "20px", color: "var(--text-primary)" }}>
                   Investigation Findings & Recommended Mitigation
                 </h2>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: "11px", padding: "4px 8px" }}
+                    onClick={() => handleExport("json")}
+                  >
+                    Export JSON
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: "11px", padding: "4px 8px" }}
+                    onClick={() => handleExport("csv")}
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: "11px", padding: "4px 8px" }}
+                    onClick={() => handleExport("markdown")}
+                  >
+                    Export MD
+                  </button>
+                </div>
                 <Badge type="hypothesis">HYPOTHESIS</Badge>
                 <Badge type="fact">CONFIDENCE: {result.conclusion?.confidence?.toUpperCase() || "HIGH"}</Badge>
               </div>
@@ -249,13 +320,13 @@ function AnalystContent() {
             {/* Synthesized Explanation */}
             <div
               style={{
-                backgroundColor: "#f8fdf9",
-                borderLeft: "4px solid #10b981",
+                backgroundColor: "rgba(183, 242, 106, 0.05)",
+                borderLeft: "4px solid var(--accent-lime)",
                 padding: "16px 20px",
                 borderRadius: "0 8px 8px 0",
                 fontSize: "14px",
                 lineHeight: "1.7",
-                color: "#132d26",
+                color: "var(--text-primary)",
                 marginBottom: "20px",
               }}
             >
@@ -266,8 +337,9 @@ function AnalystContent() {
             {result.conclusion?.recommended_action && (
               <div
                 style={{
-                  background: "#10201d",
-                  color: "#e2ede8",
+                  background: "rgba(0, 0, 0, 0.4)",
+                  border: "1px solid var(--border-subtle)",
+                  color: "var(--text-primary)",
                   padding: "16px 20px",
                   borderRadius: "8px",
                   marginBottom: "24px",
@@ -291,8 +363,8 @@ function AnalystContent() {
                     {result.conclusion.recommended_action}
                   </div>
                 </div>
-                <button className="btn btn-accent" style={{ flexShrink: 0 }}>
-                  Apply Mitigation
+                <button className="btn btn-primary" style={{ flexShrink: 0, fontSize: "12px" }}>
+                  Acknowledge Action
                 </button>
               </div>
             )}
@@ -301,6 +373,72 @@ function AnalystContent() {
             {result.conclusion?.evidence_graph && (
               <EvidenceGraphViewer graph={result.conclusion.evidence_graph} />
             )}
+
+            {/* Multi-Turn Interrogation Drawer */}
+            <div
+              style={{
+                marginTop: "28px",
+                padding: "20px",
+                borderRadius: "8px",
+                background: "rgba(255, 255, 255, 0.02)",
+                border: "1px solid var(--border-subtle)",
+              }}
+            >
+              <div className="eyebrow" style={{ color: "var(--accent-cyan)", marginBottom: "8px" }}>
+                MULTI-TURN EVIDENCE INTERROGATION
+              </div>
+              <h3 style={{ fontSize: "16px", marginBottom: "16px" }}>
+                Drill Down into Investigation Evidence
+              </h3>
+
+              {/* Follow-up History */}
+              {result.conclusion?.follow_ups && result.conclusion.follow_ups.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
+                  {result.conclusion.follow_ups.map((fu, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: "12px 16px",
+                        borderRadius: "6px",
+                        background: "rgba(255, 255, 255, 0.04)",
+                        borderLeft: "3px solid var(--accent-cyan)",
+                      }}
+                    >
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--accent-cyan)" }}>
+                        Q: {fu.question}
+                      </div>
+                      <div style={{ fontSize: "13px", marginTop: "4px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
+                        {fu.answer}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px" }}>
+                        Verified via policy: <code style={{ fontFamily: "var(--font-mono)" }}>{fu.skill}</code>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Follow-up Form */}
+              <form onSubmit={handleFollowUpSubmit} style={{ display: "flex", gap: "10px" }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  style={{ flex: 1, fontSize: "14px" }}
+                  placeholder="Ask a clarifying follow-up (e.g. 'Can you check if gateway timeouts contributed to this?')..."
+                  value={followupQuestion}
+                  onChange={(e) => setFollowupQuestion(e.target.value)}
+                  disabled={isFollowupLoading}
+                />
+                <button
+                  type="submit"
+                  className="btn btn-secondary"
+                  style={{ padding: "0 18px", fontSize: "13px" }}
+                  disabled={isFollowupLoading || !followupQuestion.trim()}
+                >
+                  {isFollowupLoading ? "Analyzing..." : "Ask Follow-up →"}
+                </button>
+              </form>
+            </div>
 
             {/* Assembled Evidence Tree */}
             <div style={{ marginTop: "24px" }}>

@@ -63,3 +63,22 @@ export async function apiRequest<T>(
     throw err;
   }
 }
+
+export const apiClient = {
+  get: <T>(endpoint: string, fallbackSupplier?: () => T) =>
+    apiRequest<T>(endpoint, { method: "GET" }, fallbackSupplier),
+  post: <T>(endpoint: string, body?: any, fallbackSupplier?: () => T) =>
+    apiRequest<T>(
+      endpoint,
+      { method: "POST", body: body ? JSON.stringify(body) : undefined },
+      fallbackSupplier
+    ),
+  patch: <T>(endpoint: string, body?: any, fallbackSupplier?: () => T) =>
+    apiRequest<T>(
+      endpoint,
+      { method: "PATCH", body: body ? JSON.stringify(body) : undefined },
+      fallbackSupplier
+    ),
+  delete: <T>(endpoint: string, fallbackSupplier?: () => T) =>
+    apiRequest<T>(endpoint, { method: "DELETE" }, fallbackSupplier),
+};
