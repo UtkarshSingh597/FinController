@@ -2,15 +2,6 @@
 
 ### An AI-native financial control tower that investigates why money moves — not just what moved.
 
-[![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Next.js](https://img.shields.io/badge/Next.js-15.5-black?logo=next.js&logoColor=white)](https://nextjs.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-336791?logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Alembic](https://img.shields.io/badge/Alembic-Migrations-blue)](https://alembic.sqlalchemy.org)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-Isolation_Forest-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
-[![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-black?logo=ollama&logoColor=white)](https://ollama.ai)
-[![Ruff](https://img.shields.io/badge/Ruff-0_Errors-brightgreen?logo=ruff&logoColor=white)](https://astral.sh/ruff)
-[![Pytest](https://img.shields.io/badge/Pytest-32_Passed-brightgreen?logo=pytest&logoColor=white)](https://pytest.org)
 
 ---
 
