@@ -1,0 +1,1 @@
+"""FINCONTROL backend application."""
