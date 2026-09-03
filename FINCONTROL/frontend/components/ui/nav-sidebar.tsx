@@ -50,13 +50,16 @@ export function NavSidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="user-profile">
-          <div className="user-avatar">AA</div>
-          <div className="user-info">
-            <div className="user-name">Avery Analyst</div>
-            <div className="user-role">Acme FinTech · Owner</div>
+        <Link href="/login" style={{ textDecoration: "none", color: "inherit", display: "block" }} title="Switch Account / Sign In">
+          <div className="user-profile">
+            <div className="user-avatar">AA</div>
+            <div className="user-info">
+              <div className="user-name">Avery Analyst</div>
+              <div className="user-role">NovaPay FinTech · Owner</div>
+            </div>
+            <span style={{ marginLeft: "auto", fontSize: "11px", color: "var(--text-secondary)", opacity: 0.7 }}>⇄</span>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   );
