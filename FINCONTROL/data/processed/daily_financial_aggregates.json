@@ -1,0 +1,53 @@
+[
+  {
+    "date": "2026-08-30",
+    "gross_revenue": 178500.00,
+    "settled_revenue": 174200.00,
+    "transaction_count": 4850,
+    "decline_rate_pct": 5.8,
+    "gateway_timeout_pct": 0.4,
+    "refund_volume": 2100.00,
+    "anomaly_flag": false
+  },
+  {
+    "date": "2026-08-31",
+    "gross_revenue": 182400.00,
+    "settled_revenue": 179100.00,
+    "transaction_count": 5120,
+    "decline_rate_pct": 6.1,
+    "gateway_timeout_pct": 0.5,
+    "refund_volume": 1950.00,
+    "anomaly_flag": false
+  },
+  {
+    "date": "2026-09-01",
+    "gross_revenue": 176900.00,
+    "settled_revenue": 172800.00,
+    "transaction_count": 4910,
+    "decline_rate_pct": 6.4,
+    "gateway_timeout_pct": 0.6,
+    "refund_volume": 2400.00,
+    "anomaly_flag": false
+  },
+  {
+    "date": "2026-09-02",
+    "gross_revenue": 174200.00,
+    "settled_revenue": 170100.00,
+    "transaction_count": 4790,
+    "decline_rate_pct": 7.2,
+    "gateway_timeout_pct": 0.9,
+    "refund_volume": 2800.00,
+    "anomaly_flag": false
+  },
+  {
+    "date": "2026-09-03",
+    "gross_revenue": 142850.00,
+    "settled_revenue": 126400.00,
+    "transaction_count": 4210,
+    "decline_rate_pct": 15.91,
+    "gateway_timeout_pct": 3.37,
+    "refund_volume": 3450.00,
+    "anomaly_flag": true,
+    "anomaly_reason": "Stripe Gateway 504 Timeout Cluster"
+  }
+]

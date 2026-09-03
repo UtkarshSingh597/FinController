@@ -1,0 +1,15 @@
+{
+  "feature_names": ["amount", "processing_latency_ms", "failure_velocity_1h", "refund_ratio_7d", "hour_of_day"],
+  "baseline_statistics": {
+    "amount": { "mean": 175.40, "std": 85.20, "p95": 420.00 },
+    "processing_latency_ms": { "mean": 380.0, "std": 110.0, "p95": 650.0 },
+    "failure_velocity_1h": { "mean": 1.4, "std": 1.8, "p95": 5.0 },
+    "refund_ratio_7d": { "mean": 0.018, "std": 0.006, "p95": 0.032 },
+    "hour_of_day": { "mean": 0.50, "std": 0.28, "p95": 0.95 }
+  },
+  "anomaly_thresholds": {
+    "score_warning": 0.700,
+    "score_critical": 0.850,
+    "max_timeout_rate_pct": 2.5
+  }
+}

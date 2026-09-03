@@ -1,0 +1,9 @@
+{
+  "host": "http://localhost:11434",
+  "default_model": "qwen3:8b",
+  "custom_model": "fincontrol-qwen",
+  "temperature": 0.2,
+  "context_window": 16384,
+  "timeout_seconds": 60,
+  "retry_attempts": 3
+}

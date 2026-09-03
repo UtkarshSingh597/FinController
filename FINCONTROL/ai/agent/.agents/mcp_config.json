@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "fincontrol-tools": {
+      "command": "python",
+      "args": ["-m", "app.mcp.server"],
+      "env": {
+        "FINCONTROL_ENV": "production"
+      }
+    }
+  }
+}

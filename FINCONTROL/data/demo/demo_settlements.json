@@ -1,0 +1,39 @@
+[
+  {
+    "settlement_id": "set_9801",
+    "organization_id": "org_demo_fintech",
+    "gateway": "Stripe",
+    "batch_date": "2026-09-02",
+    "gross_amount": 94500.00,
+    "fee_amount": 2840.50,
+    "refund_deductions": 1850.00,
+    "net_payout": 89809.50,
+    "status": "SETTLED",
+    "payout_expected_at": "2026-09-04T12:00:00Z"
+  },
+  {
+    "settlement_id": "set_9802",
+    "organization_id": "org_demo_fintech",
+    "gateway": "Stripe",
+    "batch_date": "2026-09-03",
+    "gross_amount": 47500.00,
+    "fee_amount": 1425.00,
+    "refund_deductions": 620.00,
+    "net_payout": 45455.00,
+    "status": "DELAYED",
+    "delay_reason": "Processor Batch Audit Flag (504 Timeout Discrepancies)",
+    "payout_expected_at": "2026-09-06T18:00:00Z"
+  },
+  {
+    "settlement_id": "set_9803",
+    "organization_id": "org_demo_fintech",
+    "gateway": "Adyen",
+    "batch_date": "2026-09-03",
+    "gross_amount": 38200.00,
+    "fee_amount": 993.20,
+    "refund_deductions": 410.00,
+    "net_payout": 36796.80,
+    "status": "SETTLED",
+    "payout_expected_at": "2026-09-04T09:00:00Z"
+  }
+]

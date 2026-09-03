@@ -1,0 +1,38 @@
+[
+  {
+    "telemetry_id": "tel_101",
+    "gateway": "Stripe",
+    "endpoint": "https://api.stripe.com/v1/charges",
+    "status_code": 504,
+    "latency_ms": 5240,
+    "error_message": "Gateway Timeout from Upstream Processor",
+    "timestamp": "2026-09-03T14:22:15Z"
+  },
+  {
+    "telemetry_id": "tel_102",
+    "gateway": "Stripe",
+    "endpoint": "https://api.stripe.com/v1/charges",
+    "status_code": 504,
+    "latency_ms": 6120,
+    "error_message": "Gateway Timeout from Upstream Processor",
+    "timestamp": "2026-09-03T14:23:40Z"
+  },
+  {
+    "telemetry_id": "tel_103",
+    "gateway": "Adyen",
+    "endpoint": "https://checkout-test.adyen.com/v70/payments",
+    "status_code": 200,
+    "latency_ms": 380,
+    "error_message": null,
+    "timestamp": "2026-09-03T14:24:02Z"
+  },
+  {
+    "telemetry_id": "tel_104",
+    "gateway": "Stripe",
+    "endpoint": "https://api.stripe.com/v1/charges",
+    "status_code": 200,
+    "latency_ms": 480,
+    "error_message": null,
+    "timestamp": "2026-09-03T14:25:10Z"
+  }
+]

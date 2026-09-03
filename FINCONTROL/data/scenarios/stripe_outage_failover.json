@@ -1,0 +1,22 @@
+{
+  "scenario_id": "sc_failover_01",
+  "name": "Dynamic Gateway Failover: Stripe -> Adyen",
+  "description": "Simulates shifting 80% of card checkout traffic from degraded Stripe gateway to healthy Adyen backup connector.",
+  "parameters": {
+    "source_gateway": "Stripe",
+    "target_gateway": "Adyen",
+    "traffic_shift_percentage": 80.0,
+    "simulation_duration_hours": 24
+  },
+  "expected_impact": {
+    "projected_decline_rate_drop_pct": -9.2,
+    "recovered_daily_revenue_usd": 28400.00,
+    "incremental_processing_fee_cost_usd": 420.00,
+    "net_financial_benefit_usd": 27980.00
+  },
+  "risk_assessment": {
+    "implementation_risk": "LOW",
+    "requires_downtime": false,
+    "compliance_status": "PCI_DSS_LEVEL_1_VERIFIED"
+  }
+}

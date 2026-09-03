@@ -1,0 +1,24 @@
+[
+  {
+    "dispute_id": "dp_501",
+    "organization_id": "org_demo_fintech",
+    "transaction_id": "tx_100012",
+    "amount": 280.00,
+    "currency": "USD",
+    "reason": "FRAUDULENT_CARD_USE",
+    "status": "UNDER_REVIEW",
+    "opened_at": "2026-09-01T11:20:00Z",
+    "evidence_due_by": "2026-09-15T23:59:59Z"
+  },
+  {
+    "dispute_id": "dp_502",
+    "organization_id": "org_demo_fintech",
+    "transaction_id": "tx_100045",
+    "amount": 1250.00,
+    "currency": "USD",
+    "reason": "PRODUCT_NOT_RECEIVED",
+    "status": "LOST",
+    "opened_at": "2026-08-25T14:10:00Z",
+    "evidence_due_by": "2026-09-08T23:59:59Z"
+  }
+]

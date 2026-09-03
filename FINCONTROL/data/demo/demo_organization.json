@@ -1,0 +1,40 @@
+{
+  "organization_id": "org_demo_fintech",
+  "name": "NovaPay Global Technologies",
+  "tier": "ENTERPRISE",
+  "currency": "USD",
+  "timezone": "America/New_York",
+  "created_at": "2024-01-15T08:00:00Z",
+  "risk_profile": {
+    "target_decline_rate_pct": 8.0,
+    "max_acceptable_timeout_rate_pct": 2.0,
+    "dispute_threshold_pct": 1.0,
+    "minimum_reserve_balance": 50000.00
+  },
+  "payment_gateways": [
+    {
+      "name": "Stripe",
+      "status": "DEGRADED",
+      "routing_priority": 1,
+      "settlement_delay_days": 2,
+      "processing_fee_pct": 2.9,
+      "fixed_fee_usd": 0.30
+    },
+    {
+      "name": "Adyen",
+      "status": "HEALTHY",
+      "routing_priority": 2,
+      "settlement_delay_days": 1,
+      "processing_fee_pct": 2.6,
+      "fixed_fee_usd": 0.25
+    },
+    {
+      "name": "PayPal",
+      "status": "HEALTHY",
+      "routing_priority": 3,
+      "settlement_delay_days": 3,
+      "processing_fee_pct": 3.49,
+      "fixed_fee_usd": 0.49
+    }
+  ]
+}

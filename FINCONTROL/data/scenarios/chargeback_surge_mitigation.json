@@ -1,0 +1,21 @@
+{
+  "scenario_id": "sc_chargeback_02",
+  "name": "3D-Secure Fraud Challenge Threshold Tightening",
+  "description": "Simulates activating step-up biometric / 3DS authentication for transactions > $300 to curb fraudulent dispute surges.",
+  "parameters": {
+    "target_channels": ["E-Commerce Web", "Mobile App API"],
+    "minimum_ticket_size_challenge": 300.00,
+    "projected_checkout_friction_drop_pct": 2.1
+  },
+  "expected_impact": {
+    "dispute_rate_reduction_pct": -45.0,
+    "chargeback_fee_savings_usd": 6800.00,
+    "friction_revenue_loss_usd": 1400.00,
+    "net_financial_benefit_usd": 5400.00
+  },
+  "risk_assessment": {
+    "implementation_risk": "MEDIUM",
+    "requires_downtime": false,
+    "compliance_status": "APPROVED"
+  }
+}
