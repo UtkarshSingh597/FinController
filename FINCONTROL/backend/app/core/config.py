@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "FINCONTROL API"
+    app_name: str = "Artha (अर्थ) API"
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])

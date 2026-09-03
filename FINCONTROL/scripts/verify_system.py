@@ -38,14 +38,14 @@ def check_ollama():
 
 def main():
     print("\n==========================================")
-    print("FINCONTROL System Diagnostics")
+    print("Artha (अर्थ) System Diagnostics")
     print("==========================================\n")
     try:
         check_mcp()
         check_ml()
         check_prompts()
         check_ollama()
-        print("\n[SUCCESS] All FinControl platform layers verified!\n")
+        print("\n[SUCCESS] All Artha (अर्थ) platform layers verified!\n")
     except Exception as e:
         print(f"\n[ERROR] Health check failed: {e}\n")
         sys.exit(1)

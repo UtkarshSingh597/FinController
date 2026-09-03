@@ -24,9 +24,9 @@ export function NavSidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="brand-mark">F</div>
+        <div className="brand-mark">अ</div>
         <div>
-          <h1 className="brand-title">FINCONTROL</h1>
+          <h1 className="brand-title">Artha (अर्थ)</h1>
           <div className="brand-badge">FINANCIAL CONTROL TOWER</div>
         </div>
       </div>

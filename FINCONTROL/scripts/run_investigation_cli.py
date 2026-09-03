@@ -15,13 +15,13 @@ from mcp.tools.payment_analysis import analyze_payment_health_tool
 from ml.inference.anomaly_service import AnomalyInferenceService
 
 def main():
-    parser = argparse.ArgumentParser(description="Run FinControl Autonomous AI Investigation")
+    parser = argparse.ArgumentParser(description="Run Artha (अर्थ) Autonomous AI Investigation")
     parser.add_argument("--org-id", default="org_demo_fintech", help="Tenant organization ID")
     parser.add_argument("--question", default="Why did our revenue drop over the last 3 days?", help="Investigation question")
     args = parser.parse_args()
 
     print(f"\n==========================================")
-    print(f"FINCONTROL Autonomous Investigation")
+    print(f"Artha (अर्थ) Autonomous Investigation")
     print(f"Tenant: {args.org_id}")
     print(f"Question: '{args.question}'")
     print(f"==========================================\n")

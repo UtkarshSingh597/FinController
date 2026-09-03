@@ -72,10 +72,10 @@ export default function AuthPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
           <div className="brand-mark" style={{ width: 28, height: 28, fontSize: 14 }}>
-            F
+            अ
           </div>
           <div>
-            <h2 style={{ fontSize: "16px", fontWeight: 700 }}>FINCONTROL</h2>
+            <h2 style={{ fontSize: "16px", fontWeight: 700 }}>Artha (अर्थ)</h2>
             <div className="eyebrow" style={{ fontSize: "9px" }}>
               ENTERPRISE PLATFORM
             </div>
