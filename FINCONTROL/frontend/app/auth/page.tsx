@@ -24,29 +24,40 @@ export default function AuthPage() {
         ? { organization_name: orgName, email, display_name: displayName, password }
         : { email, password };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1800);
+
       const res = await fetch(`http://localhost:8000${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal: controller.signal,
+      }).catch(async () => {
+        return await fetch(`http://127.0.0.1:8000${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
       });
 
-      if (res.ok) {
+      clearTimeout(timeoutId);
+
+      if (res && res.ok) {
         const data = await res.json();
         if (data.access_token) {
           setStoredToken(data.access_token);
         }
-        setStatusMsg("Success! Redirecting to Control Tower...");
-        setTimeout(() => router.push("/"), 500);
+        setStatusMsg("Success! Entering Control Tower...");
+        window.location.href = "/";
       } else {
-        // Fallback for demo
         setStoredToken("demo-mock-jwt-token");
         setStatusMsg("Demo session active. Entering platform...");
-        setTimeout(() => router.push("/"), 500);
+        window.location.href = "/";
       }
     } catch {
       setStoredToken("demo-mock-jwt-token");
       setStatusMsg("Demo mode active. Entering platform...");
-      setTimeout(() => router.push("/"), 500);
+      window.location.href = "/";
     }
   };
 
