@@ -101,6 +101,7 @@ export interface InvestigationRecord {
   user_id: string;
   question: string;
   status: string;
+  skills_used?: string[];
   evidence: Array<{
     type: "fact" | "prediction" | "hypothesis" | "simulation";
     source: string;

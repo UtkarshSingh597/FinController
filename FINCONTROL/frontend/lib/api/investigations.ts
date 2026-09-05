@@ -263,5 +263,90 @@ export async function getInvestigations(): Promise<InvestigationRecord[]> {
 }
 
 export async function getInvestigationById(id: string): Promise<InvestigationRecord> {
-  return apiRequest<InvestigationRecord>(`/investigations/${id}`);
+  return apiRequest<InvestigationRecord>(
+    `/investigations/${id}`,
+    {},
+    () => {
+      const rec = generateQueryAwareInvestigation("Investigation details");
+      rec.id = id;
+      return rec;
+    }
+  );
+}
+
+export function exportInvestigationBundle(
+  record: InvestigationRecord,
+  format: "json" | "csv" | "markdown"
+): void {
+  if (typeof window === "undefined") return;
+
+  let content = "";
+  let mimeType = "application/json";
+  let ext = "json";
+
+  const safeId = record.id.slice(0, 8);
+
+  if (format === "csv") {
+    mimeType = "text/csv;charset=utf-8;";
+    ext = "csv";
+    const rows = [
+      ["Investigation_ID", "Question", "Status", "Created_At", "Completed_At", "Primary_Skill", "Conclusion"],
+      [
+        `"${record.id}"`,
+        `"${(record.question || "").replace(/"/g, '""')}"`,
+        `"${record.status}"`,
+        `"${record.created_at}"`,
+        `"${record.completed_at || ""}"`,
+        `"${record.conclusion?.primary_skill || "financial_analysis"}"`,
+        `"${(record.conclusion?.text || "").replace(/"/g, '""')}"`,
+      ],
+    ];
+    content = rows.map((r) => r.join(",")).join("\n");
+  } else if (format === "markdown") {
+    mimeType = "text/markdown;charset=utf-8;";
+    ext = "md";
+    content = `# Artha Financial Investigation Report
+**Investigation ID:** \`${record.id}\`  
+**Status:** ${record.status.toUpperCase()}  
+**Created:** ${record.created_at}  
+
+## Inquiry
+> "${record.question}"
+
+## Finding & Hypothesis
+${record.conclusion?.text || "No conclusion text."}
+
+**Recommended Action:**  
+${record.conclusion?.recommended_action || "None required."}
+
+## Evidence Collected (${(record.evidence || []).length} items)
+${(record.evidence || [])
+  .map(
+    (e, idx) => `
+### Evidence #${idx + 1} [${e.type.toUpperCase()}]
+- **Source:** \`${e.source}\`
+- **Description:** ${e.description || "N/A"}
+\`\`\`json
+${JSON.stringify(e.data, null, 2)}
+\`\`\`
+`
+  )
+  .join("\n")}
+`;
+  } else {
+    // JSON default
+    mimeType = "application/json;charset=utf-8;";
+    ext = "json";
+    content = JSON.stringify(record, null, 2);
+  }
+
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `artha_investigation_${safeId}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
