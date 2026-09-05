@@ -16,24 +16,24 @@ interface BreakdownChartProps {
 export function BreakdownChart({ title, items }: BreakdownChartProps) {
   const total = items.reduce((sum, item) => sum + item.count, 0);
 
-  const defaultColors = ["#10b981", "#ef4444", "#f59e0b", "#3b82f6", "#8b5cf6"];
+  const defaultColors = ["#f87171", "#fbbf24", "#60a5fa", "#9cb1a8", "#677d74"];
 
   return (
     <div style={{ width: "100%" }}>
       {title && (
-        <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>
+        <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "var(--font-mono)" }}>
           {title}
         </div>
       )}
 
-      {/* Stacked bar */}
+      {/* Segmented bar */}
       <div
         style={{
           display: "flex",
-          height: 12,
-          borderRadius: 4,
+          height: 8,
+          borderRadius: "var(--radius-xs)",
           overflow: "hidden",
-          backgroundColor: "#e2e8e4",
+          backgroundColor: "var(--bg-surface-elevated)",
           marginBottom: 14,
         }}
       >
@@ -46,7 +46,7 @@ export function BreakdownChart({ title, items }: BreakdownChartProps) {
               style={{
                 width: `${widthPercent}%`,
                 backgroundColor: item.color || defaultColors[idx % defaultColors.length],
-                transition: "width 0.3s ease",
+                transition: "width 0.2s ease",
               }}
               title={`${item.label}: ${item.count} (${widthPercent.toFixed(1)}%)`}
             />
@@ -54,26 +54,38 @@ export function BreakdownChart({ title, items }: BreakdownChartProps) {
         })}
       </div>
 
-      {/* Legend */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+      {/* Structured data rows */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
         {items.map((item, idx) => {
           const widthPercent = total > 0 ? ((item.count / total) * 100).toFixed(1) : "0";
           const color = item.color || defaultColors[idx % defaultColors.length];
           return (
-            <div key={idx} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px" }}>
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: "12px",
+                padding: "4px 6px",
+                borderBottom: "1px solid var(--border-subtle)",
+              }}
+            >
               <span
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
+                  width: 6,
+                  height: 6,
+                  borderRadius: "1px",
                   backgroundColor: color,
                   display: "inline-block",
                 }}
               />
-              <span style={{ color: "var(--text-secondary)" }}>{item.label}:</span>
-              <strong style={{ marginLeft: "auto", fontFamily: "var(--font-mono)" }}>
-                {item.count} ({widthPercent}%)
-              </strong>
+              <span style={{ color: "var(--text-secondary)", textTransform: "capitalize" }}>
+                {item.label}
+              </span>
+              <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: "11.5px", color: "var(--text-primary)" }}>
+                {item.count} <span style={{ color: "var(--text-muted)" }}>({widthPercent}%)</span>
+              </span>
             </div>
           );
         })}

@@ -16,7 +16,7 @@ export default function AuthPage() {
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    setStatusMsg("Creating environment & entering Control Tower...");
+    setStatusMsg("Deploying tenant environment & entering Control Tower...");
 
     const token = `artha_jwt_${btoa(email)}_${Date.now()}`;
     setStoredToken(token);
@@ -46,7 +46,7 @@ export default function AuthPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--bg-app)",
+        backgroundColor: "var(--bg-app)",
         padding: "24px",
       }}
     >
@@ -56,28 +56,44 @@ export default function AuthPage() {
           width: "100%",
           maxWidth: "440px",
           padding: "36px 32px",
-          boxShadow: "var(--shadow-md)",
+          borderRadius: "var(--radius-sm)",
+          backgroundColor: "var(--bg-surface)",
+          border: "1px solid var(--border-default)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-          <div className="brand-mark" style={{ width: 28, height: 28, fontSize: 14 }}>
+          <div
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: "var(--radius-xs)",
+              background: "var(--bg-surface-elevated)",
+              border: "1px solid var(--border-default)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+            }}
+          >
             अ
           </div>
           <div>
-            <h2 style={{ fontSize: "16px", fontWeight: 700 }}>Artha (अर्थ)</h2>
-            <div className="eyebrow" style={{ fontSize: "9px" }}>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>Artha</h2>
+            <div className="eyebrow" style={{ fontSize: "9.5px", marginBottom: 0 }}>
               ENTERPRISE PLATFORM
             </div>
           </div>
         </div>
 
-        <h1 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "6px" }}>
+        <h1 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px", color: "var(--text-primary)" }}>
           {isRegister ? "Create Organization" : "Sign In to Control Tower"}
         </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "24px" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "20px", lineHeight: "1.45" }}>
           {isRegister
             ? "Deploy an isolated multi-tenant financial intelligence environment."
-            : "Access real-time financial telemetry, ML models, and investigation agents."}
+            : "Access real-time financial telemetry, ML models, and investigation pipelines."}
         </p>
 
         <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -132,31 +148,33 @@ export default function AuthPage() {
             <div
               style={{
                 fontSize: "12px",
-                padding: "8px",
-                borderRadius: 4,
-                background: "#f0fdf4",
-                color: "#166534",
+                padding: "8px 10px",
+                borderRadius: "var(--radius-xs)",
+                background: "var(--semantic-positive-bg)",
+                border: "1px solid var(--semantic-positive-border)",
+                color: "var(--semantic-positive-text)",
+                fontFamily: "var(--font-mono)",
               }}
             >
               {statusMsg}
             </div>
           )}
 
-          <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "10px" }}>
+          <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "6px" }}>
             {isRegister ? "Register Organization" : "Sign In"}
           </button>
         </form>
 
-        <div style={{ marginTop: "20px", textAlign: "center", fontSize: "13px" }}>
+        <div style={{ marginTop: "18px", textAlign: "center", fontSize: "12.5px" }}>
           <button
             type="button"
             onClick={() => setIsRegister(!isRegister)}
             style={{
               background: "none",
               border: "none",
-              color: "var(--accent-forest)",
+              color: "var(--text-secondary)",
               cursor: "pointer",
-              fontWeight: 600,
+              fontWeight: 500,
               textDecoration: "underline",
             }}
           >
@@ -164,7 +182,7 @@ export default function AuthPage() {
           </button>
         </div>
 
-        <div style={{ marginTop: "16px", textAlign: "center" }}>
+        <div style={{ marginTop: "14px", textAlign: "center" }}>
           <Link href="/" style={{ fontSize: "12px", color: "var(--text-muted)", textDecoration: "none" }}>
             ← Return to Control Tower Overview
           </Link>

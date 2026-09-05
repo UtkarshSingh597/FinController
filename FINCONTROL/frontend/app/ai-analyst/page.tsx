@@ -10,6 +10,10 @@ import { EvidenceGraphViewer } from "../../components/investigation/evidence-gra
 import { Badge } from "../../components/ui/badge";
 import { NavSidebar } from "../../components/ui/nav-sidebar";
 import {
+  ArrowRightIcon,
+  CheckIcon,
+} from "../../components/ui/icons";
+import {
   createInvestigation,
   submitInvestigationFollowUp,
   InvestigationRecord,
@@ -32,8 +36,8 @@ function AnalystContent() {
   const sampleQuestions = [
     "Why did revenue fall over the last 3 days?",
     "Why are card payments declining with provider timeouts?",
+    "What if refunds increase by 40% next 3 months?",
     "Is there revenue leakage between payments and settlements?",
-    "What if refunds increase by 20% next month?",
     "Are there unusual transaction amounts in the recent batch?",
   ];
 
@@ -47,22 +51,22 @@ function AnalystContent() {
 
     // Step 1: Routing
     setCurrentStep("routing");
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 450));
     setCompletedSteps(["routing"]);
 
     // Step 2: Evidence
     setCurrentStep("evidence");
-    await new Promise((r) => setTimeout(r, 700));
+    await new Promise((r) => setTimeout(r, 550));
     setCompletedSteps(["routing", "evidence"]);
 
     // Step 3: Anomalies & ML
     setCurrentStep("anomalies");
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 450));
     setCompletedSteps(["routing", "evidence", "anomalies"]);
 
     // Step 4: Synthesis
     setCurrentStep("synthesis");
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 400));
     setCompletedSteps(["routing", "evidence", "anomalies", "synthesis"]);
 
     // Execute API Call
@@ -100,7 +104,6 @@ function AnalystContent() {
     const token = typeof window !== "undefined" ? localStorage.getItem("fincontrol_token") : null;
     const url = `http://localhost:8000/api/v1/investigations/${invId}/export?format=${format}`;
 
-    // Trigger direct download or fallback to client JSON
     if (token) {
       fetch(url, { headers: { Authorization: `Bearer ${token}` } })
         .then((res) => res.blob())
@@ -108,7 +111,7 @@ function AnalystContent() {
           const blobUrl = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = blobUrl;
-          a.download = `fincontrol_investigation_${invId.slice(0, 8)}.${format === "markdown" ? "md" : format}`;
+          a.download = `artha_investigation_${invId.slice(0, 8)}.${format === "markdown" ? "md" : format}`;
           a.click();
           window.URL.revokeObjectURL(blobUrl);
         })
@@ -125,7 +128,7 @@ function AnalystContent() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result, null, 2));
     const a = document.createElement("a");
     a.href = dataStr;
-    a.download = `fincontrol_investigation_${result.id.slice(0, 8)}.json`;
+    a.download = `artha_investigation_${result.id.slice(0, 8)}.json`;
     a.click();
   };
 
@@ -142,22 +145,22 @@ function AnalystContent() {
       <main className="main-content">
         <header className="page-header">
           <div>
-            <div className="eyebrow">AUTONOMOUS INVESTIGATION WORKSPACE</div>
-            <h1 className="page-title">AI Financial Analyst</h1>
+            <div className="eyebrow">INVESTIGATION WORKSPACE</div>
+            <h1 className="page-title">Financial Intelligence Analyst</h1>
             <p className="page-subtitle">
-              Interrogate financial books, trace root-cause evidence, and verify deterministic hypotheses.
+              Autonomous, auditable root-cause investigation across payment telemetry, ledger facts, and ML anomaly models.
             </p>
           </div>
         </header>
 
-        {/* Input Query Bar */}
-        <section className="panel">
-          <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+        {/* Technical Input Inquiry Bar */}
+        <section className="panel" style={{ marginBottom: "20px" }}>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
             <input
               type="text"
-              className="input-field"
-              style={{ flex: 1, fontSize: "15px" }}
-              placeholder="Ask why money moved (e.g. 'Why did revenue drop yesterday?', 'Which payments are anomalous?')..."
+              className="form-input"
+              style={{ flex: 1, minWidth: "260px" }}
+              placeholder="Enter financial inquiry (e.g. 'Why did revenue decline over the last 3 days?')..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleStartInvestigation()}
@@ -165,35 +168,28 @@ function AnalystContent() {
             />
             <button
               className="btn btn-primary"
-              style={{ padding: "0 24px" }}
               onClick={() => handleStartInvestigation()}
               disabled={isInvestigating || !question.trim()}
             >
-              {isInvestigating ? "Investigating..." : "Investigate →"}
+              <span>{isInvestigating ? "Executing Investigation..." : "Execute Investigation"}</span>
+              <ArrowRightIcon size={13} color="currentColor" />
             </button>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-            <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>
-              Sample Inquiries:
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
+              SAMPLE QUERIES:
             </span>
             {sampleQuestions.map((sq, i) => (
               <button
                 key={i}
+                type="button"
+                className="sample-pill"
                 onClick={() => {
                   setQuestion(sq);
                   handleStartInvestigation(sq);
                 }}
                 disabled={isInvestigating}
-                style={{
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid var(--border-subtle)",
-                  padding: "4px 10px",
-                  borderRadius: 4,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  color: "var(--text-secondary)",
-                }}
               >
                 {sq}
               </button>
@@ -201,44 +197,44 @@ function AnalystContent() {
           </div>
         </section>
 
-        {/* Live Investigation Progress & Evidence Chain */}
+        {/* Execution Pipeline & Policy Context */}
         <div className="grid-2col">
           {/* Progress Tracker */}
           <article className="panel">
             <div className="panel-header">
               <div>
-                <div className="eyebrow">EXECUTION PIPELINE</div>
-                <h3 className="panel-title">Skill & Tool Execution Chain</h3>
+                <div className="eyebrow">SYSTEM PIPELINE</div>
+                <h3 className="panel-title">Investigation Execution Stages</h3>
               </div>
               <Badge type={isInvestigating ? "prediction" : "fact"}>
-                {isInvestigating ? "RUNNING" : "POLICY AUDIT"}
+                {isInvestigating ? "EXECUTING" : "VERIFIED"}
               </Badge>
             </div>
 
             <InvestigationProgress completed={completedSteps} currentStep={currentStep} />
           </article>
 
-          {/* Status & Skills Involved */}
+          {/* Orchestration Bounds */}
           <article className="panel">
             <div className="panel-header">
               <div>
-                <div className="eyebrow">AUDITABLE CONTEXT</div>
-                <h3 className="panel-title">Orchestration & Bounds</h3>
+                <div className="eyebrow">CAPABILITY BOUNDS</div>
+                <h3 className="panel-title">Orchestration Parameters</h3>
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
               <div>
-                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>
-                  ACTIVE TENANT
+                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "10.5px", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
+                  TENANT CONTEXT
                 </span>
-                <strong>Acme FinTech (Verified Principal)</strong>
+                <strong style={{ color: "var(--text-primary)" }}>NovaPay FinTech (Tenant-Scoped)</strong>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>
-                  SKILL POLICIES APPLIED
+                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "10.5px", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
+                  ACTIVE POLICIES
                 </span>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "4px" }}>
                   {(result?.conclusion?.skills || [
                     "investigation_orchestrator",
                     "revenue_investigation",
@@ -247,12 +243,13 @@ function AnalystContent() {
                     <span
                       key={s}
                       style={{
-                        background: "rgba(183, 242, 106, 0.15)",
-                        padding: "2px 8px",
-                        borderRadius: 4,
+                        background: "var(--bg-surface-elevated)",
+                        padding: "2px 6px",
+                        borderRadius: "var(--radius-xs)",
                         fontFamily: "var(--font-mono)",
                         fontSize: "11px",
-                        color: "var(--accent-lime)",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border-default)",
                       }}
                     >
                       {s}
@@ -261,16 +258,20 @@ function AnalystContent() {
                 </div>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>
-                  REASONING MODEL
+                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "10.5px", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
+                  SYNTHESIS MODEL
                 </span>
-                <span style={{ fontFamily: "var(--font-mono)" }}>Qwen3:8b via Ollama Adapter</span>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-secondary)", fontSize: "12px" }}>
+                  Qwen3:8b (Local Ollama Adapter)
+                </span>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "11px" }}>
-                  SECURITY BOUNDARY
+                <span style={{ color: "var(--text-muted)", display: "block", fontSize: "10.5px", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
+                  SECURITY CONTRACT
                 </span>
-                <span>MCP Read-Only / Zero Direct DB Access</span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "12px" }}>
+                  Strict Read-Only MCP Tool Protocol
+                </span>
               </div>
             </div>
           </article>
@@ -278,38 +279,36 @@ function AnalystContent() {
 
         {/* Investigation Conclusion & Evidence Workspace */}
         {result && (
-          <section className="panel" style={{ marginTop: "24px", border: "1px solid var(--accent-lime)" }}>
-            <div className="panel-header">
+          <section className="panel" style={{ marginTop: "20px" }}>
+            <div className="panel-header" style={{ flexWrap: "wrap", gap: "10px" }}>
               <div>
-                <div className="eyebrow" style={{ color: "var(--accent-lime)" }}>
-                  AUDITABLE CONCLUSION
-                </div>
-                <h2 style={{ fontSize: "20px", color: "var(--text-primary)" }}>
-                  Investigation Findings & Recommended Mitigation
+                <div className="eyebrow">AUDITABLE CONCLUSION</div>
+                <h2 style={{ fontSize: "18px", color: "var(--text-primary)", fontWeight: 700 }}>
+                  Root-Cause Findings & Recommended Action
                 </h2>
               </div>
-              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                <div style={{ display: "flex", gap: "6px" }}>
+              <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "4px" }}>
                   <button
                     className="btn btn-secondary"
-                    style={{ fontSize: "11px", padding: "4px 8px" }}
+                    style={{ fontSize: "11.5px", padding: "4px 8px" }}
                     onClick={() => handleExport("json")}
                   >
-                    Export JSON
+                    JSON
                   </button>
                   <button
                     className="btn btn-secondary"
-                    style={{ fontSize: "11px", padding: "4px 8px" }}
+                    style={{ fontSize: "11.5px", padding: "4px 8px" }}
                     onClick={() => handleExport("csv")}
                   >
-                    Export CSV
+                    CSV
                   </button>
                   <button
                     className="btn btn-secondary"
-                    style={{ fontSize: "11px", padding: "4px 8px" }}
+                    style={{ fontSize: "11.5px", padding: "4px 8px" }}
                     onClick={() => handleExport("markdown")}
                   >
-                    Export MD
+                    Markdown
                   </button>
                 </div>
                 <Badge type="hypothesis">HYPOTHESIS</Badge>
@@ -317,17 +316,17 @@ function AnalystContent() {
               </div>
             </div>
 
-            {/* Synthesized Explanation */}
+            {/* Synthesized Finding */}
             <div
               style={{
-                backgroundColor: "rgba(183, 242, 106, 0.05)",
-                borderLeft: "4px solid var(--accent-lime)",
-                padding: "16px 20px",
-                borderRadius: "0 8px 8px 0",
-                fontSize: "14px",
-                lineHeight: "1.7",
+                backgroundColor: "var(--bg-surface-elevated)",
+                borderLeft: "3px solid var(--border-strong)",
+                padding: "14px 18px",
+                borderRadius: "0 var(--radius-sm) var(--radius-sm) 0",
+                fontSize: "13.5px",
+                lineHeight: "1.6",
                 color: "var(--text-primary)",
-                marginBottom: "20px",
+                marginBottom: "18px",
               }}
             >
               {result.conclusion?.text}
@@ -337,34 +336,37 @@ function AnalystContent() {
             {result.conclusion?.recommended_action && (
               <div
                 style={{
-                  background: "rgba(0, 0, 0, 0.4)",
-                  border: "1px solid var(--border-subtle)",
-                  color: "var(--text-primary)",
-                  padding: "16px 20px",
-                  borderRadius: "8px",
-                  marginBottom: "24px",
+                  background: "var(--bg-surface-subtle)",
+                  border: "1px solid var(--border-default)",
+                  padding: "14px 18px",
+                  borderRadius: "var(--radius-sm)",
+                  marginBottom: "20px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "12px",
                 }}
               >
                 <div>
                   <span
                     style={{
-                      fontSize: "11px",
-                      color: "var(--accent-lime)",
-                      fontWeight: 700,
+                      fontSize: "10.5px",
+                      color: "var(--text-muted)",
+                      fontWeight: 600,
                       letterSpacing: "0.08em",
+                      fontFamily: "var(--font-mono)",
                     }}
                   >
                     RECOMMENDED OPERATIONAL ACTION
                   </span>
-                  <div style={{ fontSize: "14px", marginTop: "2px" }}>
+                  <div style={{ fontSize: "13.5px", marginTop: "3px", color: "var(--text-primary)" }}>
                     {result.conclusion.recommended_action}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{ flexShrink: 0, fontSize: "12px" }}>
-                  Acknowledge Action
+                <button className="btn btn-secondary" style={{ flexShrink: 0, fontSize: "12px" }}>
+                  <CheckIcon size={12} color="currentColor" />
+                  <span>Acknowledge Action</span>
                 </button>
               </div>
             )}
@@ -377,41 +379,42 @@ function AnalystContent() {
             {/* Multi-Turn Interrogation Drawer */}
             <div
               style={{
-                marginTop: "28px",
-                padding: "20px",
-                borderRadius: "8px",
-                background: "rgba(255, 255, 255, 0.02)",
-                border: "1px solid var(--border-subtle)",
+                marginTop: "24px",
+                padding: "18px",
+                borderRadius: "var(--radius-sm)",
+                background: "var(--bg-surface-subtle)",
+                border: "1px solid var(--border-default)",
               }}
             >
-              <div className="eyebrow" style={{ color: "var(--accent-cyan)", marginBottom: "8px" }}>
+              <div className="eyebrow" style={{ marginBottom: "4px" }}>
                 MULTI-TURN EVIDENCE INTERROGATION
               </div>
-              <h3 style={{ fontSize: "16px", marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "14px", marginBottom: "12px", fontWeight: 600 }}>
                 Drill Down into Investigation Evidence
               </h3>
 
               {/* Follow-up History */}
               {result.conclusion?.follow_ups && result.conclusion.follow_ups.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
                   {result.conclusion.follow_ups.map((fu, idx) => (
                     <div
                       key={idx}
                       style={{
-                        padding: "12px 16px",
-                        borderRadius: "6px",
-                        background: "rgba(255, 255, 255, 0.04)",
-                        borderLeft: "3px solid var(--accent-cyan)",
+                        padding: "12px 14px",
+                        borderRadius: "var(--radius-xs)",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                        borderLeft: "2px solid var(--border-strong)",
                       }}
                     >
-                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--accent-cyan)" }}>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)" }}>
                         Q: {fu.question}
                       </div>
                       <div style={{ fontSize: "13px", marginTop: "4px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
                         {fu.answer}
                       </div>
-                      <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px" }}>
-                        Verified via policy: <code style={{ fontFamily: "var(--font-mono)" }}>{fu.skill}</code>
+                      <div style={{ fontSize: "10.5px", color: "var(--text-muted)", marginTop: "6px", fontFamily: "var(--font-mono)" }}>
+                        Verified via policy: {fu.skill}
                       </div>
                     </div>
                   ))}
@@ -419,12 +422,12 @@ function AnalystContent() {
               )}
 
               {/* Follow-up Form */}
-              <form onSubmit={handleFollowUpSubmit} style={{ display: "flex", gap: "10px" }}>
+              <form onSubmit={handleFollowUpSubmit} style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <input
                   type="text"
-                  className="input-field"
-                  style={{ flex: 1, fontSize: "14px" }}
-                  placeholder="Ask a clarifying follow-up (e.g. 'Can you check if gateway timeouts contributed to this?')..."
+                  className="form-input"
+                  style={{ flex: 1, minWidth: "220px" }}
+                  placeholder="Ask a clarifying follow-up question..."
                   value={followupQuestion}
                   onChange={(e) => setFollowupQuestion(e.target.value)}
                   disabled={isFollowupLoading}
@@ -432,20 +435,20 @@ function AnalystContent() {
                 <button
                   type="submit"
                   className="btn btn-secondary"
-                  style={{ padding: "0 18px", fontSize: "13px" }}
                   disabled={isFollowupLoading || !followupQuestion.trim()}
                 >
-                  {isFollowupLoading ? "Analyzing..." : "Ask Follow-up →"}
+                  <span>{isFollowupLoading ? "Evaluating..." : "Submit Follow-up"}</span>
+                  <ArrowRightIcon size={12} color="currentColor" />
                 </button>
               </form>
             </div>
 
-            {/* Assembled Evidence Tree */}
+            {/* Assembled Evidence Items */}
             <div style={{ marginTop: "24px" }}>
               <div className="eyebrow" style={{ marginBottom: "10px" }}>
-                ASSEMBLED EVIDENCE ITEMS ({result.evidence.length})
+                COLLECTED EVIDENCE ITEMS ({result.evidence.length})
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {result.evidence.map((item, idx) => (
                   <div key={idx} className="evidence-box">
                     <div
@@ -453,18 +456,20 @@ function AnalystContent() {
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        marginBottom: "8px",
+                        marginBottom: "6px",
+                        flexWrap: "wrap",
+                        gap: "6px",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <Badge type={item.type}>{item.type}</Badge>
-                        <strong style={{ fontSize: "13px" }}>{item.source}</strong>
+                        <strong style={{ fontSize: "12.5px", color: "var(--text-primary)" }}>{item.source}</strong>
                       </div>
                       <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                         {item.description || "Authoritative data signal"}
                       </span>
                     </div>
-                    <pre style={{ margin: 0, overflowX: "auto", fontSize: "12px" }}>
+                    <pre style={{ margin: 0, overflowX: "auto", fontSize: "11.5px", color: "var(--text-secondary)" }}>
                       {JSON.stringify(item.data, null, 2)}
                     </pre>
                   </div>
@@ -480,7 +485,7 @@ function AnalystContent() {
 
 export default function AiAnalystPage() {
   return (
-    <Suspense fallback={<div>Loading investigation engine...</div>}>
+    <Suspense fallback={<div style={{ padding: "32px", textAlign: "center", color: "var(--text-muted)" }}>Loading investigation engine...</div>}>
       <AnalystContent />
     </Suspense>
   );

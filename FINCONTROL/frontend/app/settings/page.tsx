@@ -53,30 +53,30 @@ export default function SettingsPage() {
               <Badge type="fact">AUTHENTICATED</Badge>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   ORGANIZATION NAME
                 </span>
-                <strong>Acme FinTech Inc.</strong>
+                <strong style={{ color: "var(--text-primary)" }}>NovaPay FinTech Inc.</strong>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   ORGANIZATION SLUG
                 </span>
-                <span style={{ fontFamily: "var(--font-mono)" }}>acme-fintech</span>
+                <span style={{ fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>novapay-fintech</span>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   TENANT ISOLATION POLICY
                 </span>
-                <span>Verified Principal Binding (org_id required on all queries)</span>
+                <span style={{ color: "var(--text-secondary)" }}>Verified Principal Binding (org_id enforced on all queries)</span>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   DATABASE DRIVER
                 </span>
-                <span>PostgreSQL via SQLAlchemy 2.0 + Psycopg 3</span>
+                <span style={{ color: "var(--text-secondary)" }}>PostgreSQL 16 via SQLAlchemy 2.0 + Psycopg 3</span>
               </div>
             </div>
           </article>
@@ -91,53 +91,53 @@ export default function SettingsPage() {
               <Badge type="fact">RESTRICTED</Badge>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
-                  LLM REASONING PROVIDER
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
+                  REASONING PROVIDER
                 </span>
-                <strong>Qwen3 8B (via Local Ollama Adapter)</strong>
+                <strong style={{ color: "var(--text-primary)" }}>Qwen3 8B (via Local Ollama Adapter)</strong>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   DATABASE DIRECT ACCESS
                 </span>
-                <span style={{ color: "#ef4444", fontWeight: 600 }}>BLOCKED (Zero direct SQL allowed)</span>
+                <span style={{ color: "var(--semantic-critical-text)", fontWeight: 600 }}>BLOCKED (Zero direct SQL execution)</span>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   MCP TOOL PERMISSIONS
                 </span>
-                <span>Read-Only Structured Financial Summaries & ML Inferences</span>
+                <span style={{ color: "var(--text-secondary)" }}>Read-Only Structured Financial Summaries & ML Inferences</span>
               </div>
               <div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: "10.5px", display: "block", fontFamily: "var(--font-mono)" }}>
                   EVIDENCE LABELING ENFORCEMENT
                 </span>
-                <span>Mandatory FACT / PREDICTION / HYPOTHESIS / SIMULATION tags</span>
+                <span style={{ color: "var(--text-secondary)" }}>Mandatory FACT / PREDICTION / HYPOTHESIS / SIMULATION tags</span>
               </div>
             </div>
           </article>
         </div>
 
         {/* Data Ingestion Connectors (CSV + Webhooks) */}
-        <section className="panel" style={{ marginTop: "24px" }}>
+        <section className="panel" style={{ marginTop: "20px" }}>
           <div className="panel-header">
             <div>
               <div className="eyebrow">DATA INGESTION & CONNECTORS</div>
               <h3 className="panel-title">Statement Importer & Webhook Endpoints</h3>
             </div>
-            <Badge type="fact">INGESTION READY</Badge>
+            <Badge type="fact">READY</Badge>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
             {/* CSV Bank Statement Uploader */}
-            <div style={{ padding: "16px", background: "rgba(255, 255, 255, 0.02)", borderRadius: "8px", border: "1px solid var(--border-subtle)" }}>
-              <div className="eyebrow" style={{ color: "var(--accent-cyan)", marginBottom: "6px" }}>CSV STATEMENT UPLOADER</div>
+            <div style={{ padding: "14px", background: "var(--bg-surface-elevated)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-default)" }}>
+              <div className="eyebrow" style={{ marginBottom: "4px" }}>CSV STATEMENT UPLOADER</div>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>
                 Import standard bank or processor CSV files directly into your tenant ledger.
               </p>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "10px" }}>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "10px", flexWrap: "wrap" }}>
                 <input
                   type="file"
                   accept=".csv"
@@ -146,32 +146,32 @@ export default function SettingsPage() {
                 />
                 <button
                   className="btn btn-primary"
-                  style={{ fontSize: "12px", padding: "6px 14px" }}
+                  style={{ fontSize: "12px", padding: "6px 12px" }}
                   onClick={handleUpload}
                   disabled={!csvFile || uploadLoading}
                 >
-                  {uploadLoading ? "Uploading..." : "Upload Statement"}
+                  {uploadLoading ? "Processing..." : "Upload Statement"}
                 </button>
               </div>
               {uploadStatus && (
-                <div style={{ fontSize: "12px", padding: "8px 12px", borderRadius: "4px", background: uploadStatus.startsWith("Error") ? "rgba(239, 68, 68, 0.1)" : "rgba(34, 197, 94, 0.1)", color: uploadStatus.startsWith("Error") ? "#f87171" : "#4ade80" }}>
+                <div style={{ fontSize: "12px", padding: "8px 10px", borderRadius: "var(--radius-xs)", background: uploadStatus.startsWith("Error") ? "var(--semantic-critical-bg)" : "var(--semantic-positive-bg)", color: uploadStatus.startsWith("Error") ? "var(--semantic-critical-text)" : "var(--semantic-positive-text)", border: uploadStatus.startsWith("Error") ? "1px solid var(--semantic-critical-border)" : "1px solid var(--semantic-positive-border)" }}>
                   {uploadStatus}
                 </div>
               )}
             </div>
 
             {/* Live Webhook Endpoints */}
-            <div style={{ padding: "16px", background: "rgba(255, 255, 255, 0.02)", borderRadius: "8px", border: "1px solid var(--border-subtle)" }}>
-              <div className="eyebrow" style={{ color: "var(--accent-lime)", marginBottom: "6px" }}>CONFIGURED WEBHOOKS</div>
+            <div style={{ padding: "14px", background: "var(--bg-surface-elevated)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-default)" }}>
+              <div className="eyebrow" style={{ marginBottom: "4px" }}>CONFIGURED WEBHOOKS</div>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>
                 Configure incoming webhook notifications from Stripe and Adyen.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "12px", fontFamily: "var(--font-mono)" }}>
-                <div style={{ padding: "6px 10px", background: "rgba(0,0,0,0.3)", borderRadius: "4px" }}>
-                  <span style={{ color: "var(--accent-cyan)" }}>POST</span> /api/v1/webhooks/stripe
+                <div style={{ padding: "6px 10px", background: "var(--bg-surface-subtle)", borderRadius: "var(--radius-xs)", border: "1px solid var(--border-subtle)" }}>
+                  <span style={{ color: "var(--text-muted)", marginRight: 8 }}>POST</span> /api/v1/webhooks/stripe
                 </div>
-                <div style={{ padding: "6px 10px", background: "rgba(0,0,0,0.3)", borderRadius: "4px" }}>
-                  <span style={{ color: "var(--accent-cyan)" }}>POST</span> /api/v1/webhooks/adyen
+                <div style={{ padding: "6px 10px", background: "var(--bg-surface-subtle)", borderRadius: "var(--radius-xs)", border: "1px solid var(--border-subtle)" }}>
+                  <span style={{ color: "var(--text-muted)", marginRight: 8 }}>POST</span> /api/v1/webhooks/adyen
                 </div>
               </div>
             </div>
@@ -179,13 +179,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Skill Registry Table */}
-        <section className="panel" style={{ marginTop: "24px" }}>
+        <section className="panel" style={{ marginTop: "20px" }}>
           <div className="panel-header">
             <div>
               <div className="eyebrow">REASONING LAYER</div>
               <h3 className="panel-title">Active AI Skill Policies (10 Configured)</h3>
             </div>
-            <Badge type="fact">ACTIVE POLICIES</Badge>
+            <Badge type="fact">POLICIES ACTIVE</Badge>
           </div>
 
           <div className="table-container">
@@ -212,7 +212,7 @@ export default function SettingsPage() {
                   ["scenario_simulation", "What-if stress testing & projections", "Deterministic simulation engine", "Active"],
                 ].map(([name, spec, caps, st], idx) => (
                   <tr key={idx}>
-                    <td style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{name}</td>
+                    <td style={{ fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--text-primary)" }}>{name}</td>
                     <td>{spec}</td>
                     <td style={{ color: "var(--text-secondary)" }}>{caps}</td>
                     <td>

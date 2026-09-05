@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Badge } from "../../components/ui/badge";
 import { KpiCard } from "../../components/ui/kpi-card";
 import { NavSidebar } from "../../components/ui/nav-sidebar";
+import { ArrowRightIcon, CheckIcon } from "../../components/ui/icons";
 import { getAlerts, markAlertRead, resolveAlert } from "../../lib/api";
 
 interface LocalAlertItem {
@@ -22,7 +23,7 @@ export default function AlertsPage() {
       id: "alt-01",
       title: "Payment Provider Timeout Spike",
       severity: "critical",
-      body: "demo-pay card gateway timeout error rate reached 38% (threshold: 5%). Estimated lost conversion: $14,200.",
+      body: "demo-pay card gateway timeout error rate reached 38% (threshold: 5%). Estimated uncaptured volume: $14,200.",
       timestamp: "24 mins ago",
       status: "unread",
     },
@@ -103,7 +104,8 @@ export default function AlertsPage() {
             </p>
           </div>
           <button className="btn btn-secondary" onClick={markAllRead}>
-            Mark All Read
+            <CheckIcon size={12} color="currentColor" />
+            <span>Mark All Read</span>
           </button>
         </header>
 
@@ -111,76 +113,63 @@ export default function AlertsPage() {
           <KpiCard
             label="Active Unread Alerts"
             value={unreadCount.toString()}
-            trend={criticalCount > 0 ? "Critical" : "Nominal"}
-            trendDirection="down"
+            trend={criticalCount > 0 ? "Requires Review" : "Nominal"}
+            trendDirection={criticalCount > 0 ? "down" : "neutral"}
           />
-          <KpiCard label="Critical Severity" value={criticalCount.toString()} subtext="gateway & clearing risk" />
-          <KpiCard label="High Risk Alerts" value={highCount.toString()} subtext="ML outlier anomalies" />
-          <KpiCard label="Surveillance Engine" value="Active" subtext="Automated real-time telemetry" />
+          <KpiCard label="Critical Severity" value={criticalCount.toString()} subtext="clearing & conversion risk" />
+          <KpiCard label="High Risk Alerts" value={highCount.toString()} subtext="ML anomaly signals" />
+          <KpiCard label="Surveillance Engine" value="Active" subtext="continuous ledger monitoring" />
         </section>
 
         <section className="panel">
           <div className="panel-header">
             <div>
-              <div className="eyebrow">ACTIVE NOTIFICATION FEED</div>
+              <div className="eyebrow">NOTIFICATION FEED</div>
               <h3 className="panel-title">System Alert Stream</h3>
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {alerts.map((alert) => (
               <div
                 key={alert.id}
                 style={{
-                  padding: "16px 20px",
-                  borderRadius: 8,
-                  border:
-                    alert.status === "resolved"
-                      ? "1px solid var(--border-subtle)"
-                      : alert.status === "read"
-                      ? "1px solid rgba(255, 255, 255, 0.1)"
-                      : "1px solid rgba(239, 68, 68, 0.3)",
+                  padding: "14px 16px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-default)",
                   background:
                     alert.status === "resolved"
-                      ? "rgba(255, 255, 255, 0.01)"
+                      ? "var(--bg-surface-subtle)"
                       : alert.status === "read"
-                      ? "rgba(255, 255, 255, 0.03)"
-                      : "rgba(239, 68, 68, 0.05)",
+                      ? "var(--bg-surface)"
+                      : "var(--bg-surface-elevated)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
-                  gap: "16px",
+                  flexWrap: "wrap",
+                  gap: "12px",
                 }}
               >
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: 6 }}>
+                <div style={{ flex: 1, minWidth: "260px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px", flexWrap: "wrap" }}>
                     <Badge type={alert.severity as any}>{alert.severity}</Badge>
                     <span
                       style={{
-                        fontSize: "11px",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                        background:
-                          alert.status === "resolved"
-                            ? "rgba(34, 197, 94, 0.15)"
-                            : alert.status === "read"
-                            ? "rgba(148, 163, 184, 0.15)"
-                            : "rgba(239, 68, 68, 0.2)",
-                        color:
-                          alert.status === "resolved"
-                            ? "#4ade80"
-                            : alert.status === "read"
-                            ? "#94a3b8"
-                            : "#f87171",
+                        fontSize: "10.5px",
+                        padding: "1px 6px",
+                        borderRadius: "var(--radius-xs)",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-subtle)",
+                        color: "var(--text-muted)",
                         textTransform: "uppercase",
                         fontWeight: 600,
-                        letterSpacing: "0.05em",
+                        fontFamily: "var(--font-mono)",
                       }}
                     >
                       {alert.status}
                     </span>
-                    <strong style={{ fontSize: "14px" }}>{alert.title}</strong>
-                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                    <strong style={{ fontSize: "13.5px", color: "var(--text-primary)" }}>{alert.title}</strong>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)", marginLeft: "auto", fontFamily: "var(--font-mono)" }}>
                       {alert.timestamp}
                     </span>
                   </div>
@@ -189,11 +178,11 @@ export default function AlertsPage() {
                   </p>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                <div style={{ display: "flex", gap: "6px", flexShrink: 0, alignItems: "center" }}>
                   {alert.status === "unread" && (
                     <button
                       className="btn btn-secondary"
-                      style={{ fontSize: "12px", padding: "6px 10px" }}
+                      style={{ fontSize: "12px", padding: "4px 8px" }}
                       onClick={() => handleAcknowledge(alert.id)}
                     >
                       Acknowledge
@@ -202,7 +191,7 @@ export default function AlertsPage() {
                   {alert.status !== "resolved" && (
                     <button
                       className="btn btn-secondary"
-                      style={{ fontSize: "12px", padding: "6px 10px" }}
+                      style={{ fontSize: "12px", padding: "4px 8px" }}
                       onClick={() => handleResolve(alert.id)}
                     >
                       Resolve
@@ -211,9 +200,10 @@ export default function AlertsPage() {
                   <Link
                     href={`/ai-analyst?q=Investigate+alert+${encodeURIComponent(alert.title)}`}
                     className="btn btn-primary"
-                    style={{ fontSize: "12px", padding: "6px 12px" }}
+                    style={{ fontSize: "12px", padding: "4px 10px" }}
                   >
-                    Investigate →
+                    <span>Investigate</span>
+                    <ArrowRightIcon size={12} color="currentColor" />
                   </Link>
                 </div>
               </div>

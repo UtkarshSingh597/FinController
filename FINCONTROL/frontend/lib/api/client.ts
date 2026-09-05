@@ -1,5 +1,9 @@
+const isBrowser = typeof window !== "undefined";
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (isBrowser && window.location.port === "3000"
+    ? "http://localhost:8000/api/v1"
+    : "/api/v1");
 
 export function getStoredToken(): string | null {
   if (typeof window !== "undefined") {

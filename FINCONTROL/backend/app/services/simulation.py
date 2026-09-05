@@ -55,6 +55,7 @@ def simulate_scenario(
     if refund_change is not None and refund_change != 0:
         ref_dec = Decimal(str(refund_change))
         refund_impact = projected_rev * (ref_dec / Decimal("100")) * Decimal("0.05")
+        projected_rev = max(Decimal("0"), projected_rev - refund_impact)
 
     impact = projected_rev - base_dec
 

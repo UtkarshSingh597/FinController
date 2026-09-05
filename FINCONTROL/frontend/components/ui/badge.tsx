@@ -1,6 +1,14 @@
 import React from "react";
 
-export type BadgeType = "fact" | "prediction" | "hypothesis" | "simulation" | "critical" | "high" | "moderate" | "low";
+export type BadgeType =
+  | "fact"
+  | "prediction"
+  | "hypothesis"
+  | "simulation"
+  | "critical"
+  | "high"
+  | "moderate"
+  | "low";
 
 interface BadgeProps {
   type: BadgeType | string;

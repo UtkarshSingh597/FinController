@@ -23,13 +23,141 @@ from app.mcp.contracts import (
 from app.models.financial import Investigation
 
 
+import re
+
+
+def parse_scenario_query(question: str) -> dict:
+    """Extract dynamic simulation parameters, metric targets, percentages, and horizons from scenario questions."""
+    text = question.lower()
+
+    # 1. Extract percentage if present (e.g., "40%", "10 percent", "+25%")
+    pct_match = re.search(r"([+-]?\d+(?:\.\d+)?)\s*(?:%|percent)", text)
+    extracted_pct = Decimal(pct_match.group(1)) if pct_match else None
+
+    # 2. Extract direction
+    is_decrease = any(
+        w in text
+        for w in ("decrease", "fall", "drop", "decline", "lower", "reduce", "down", "cut", "loss")
+    )
+
+    # 3. Extract time horizon / duration (e.g. "next 3 months", "next month", "next 14 days", "next quarter")
+    time_match = re.search(
+        r"(?:next\s+)?(\d+)?\s*(day|days|week|weeks|month|months|quarter|quarters|year|years)", text
+    )
+    if time_match:
+        count = time_match.group(1)
+        unit = time_match.group(2)
+        horizon_text = f"next {count} {unit}" if count else f"next {unit}"
+    else:
+        horizon_text = "next period"
+
+    # Delay days pattern (e.g. "delay by 3 days", "delayed 5 days")
+    delay_match = re.search(r"delay(?:ed)?\s*(?:by\s*)?(\d+)\s*days?", text)
+    delay_days = int(delay_match.group(1)) if delay_match else None
+
+    percent_change = Decimal("0.0")
+    payment_failure_change = None
+    refund_change = None
+
+    if "refund" in text or "chargeback" in text or "return" in text:
+        pct = extracted_pct if extracted_pct is not None else Decimal("20.0")
+        if is_decrease and pct > 0:
+            pct = -pct
+        refund_change = pct
+        sim_title = f"Hypothesis: Stress-Test on Refund Volume ({pct:+g}%)"
+        assumption_summary = f"{pct:+g}% refund change over {horizon_text}"
+
+    elif "fail" in text or "decline" in text or "timeout" in text or "gateway" in text:
+        pct = extracted_pct if extracted_pct is not None else Decimal("10.0")
+        if is_decrease and pct > 0:
+            pct = -pct
+        payment_failure_change = pct
+        sim_title = f"Hypothesis: Payment Failure Volatility ({pct:+g}%)"
+        assumption_summary = f"{pct:+g}% payment failure rate change over {horizon_text}"
+
+    elif "delay" in text or "settle" in text:
+        days = delay_days or 3
+        delay_days = days
+        sim_title = f"Hypothesis: Settlement Transit Delay (+{days} days)"
+        assumption_summary = f"+{days} days settlement transit delay"
+
+    else:
+        pct = (
+            extracted_pct
+            if extracted_pct is not None
+            else (Decimal("-15.0") if is_decrease else Decimal("10.0"))
+        )
+        if is_decrease and pct > 0:
+            pct = -pct
+        percent_change = pct
+        sim_title = f"Hypothesis: Revenue Variation ({pct:+g}%)"
+        assumption_summary = f"{pct:+g}% gross revenue change over {horizon_text}"
+
+    return {
+        "percent_change": percent_change,
+        "payment_failure_change": payment_failure_change,
+        "refund_change": refund_change,
+        "delay_days": delay_days,
+        "horizon_text": horizon_text,
+        "sim_title": sim_title,
+        "assumption_summary": assumption_summary,
+    }
+
+
+def parse_query_context(question: str) -> dict:
+    """Extract universal query parameters (time windows, specific providers, categories) for all skills."""
+    text = question.lower()
+    end = datetime.now(UTC)
+
+    # 1. Dynamic Window Extraction
+    days = 30  # Default baseline
+    day_match = re.search(r"(\d+)\s*days?", text)
+    week_match = re.search(r"(\d+)\s*weeks?", text)
+    month_match = re.search(r"(\d+)\s*months?", text)
+
+    if "yesterday" in text or "last 24 hours" in text or "past 24h" in text or "last 24 hrs" in text:
+        days = 1
+    elif day_match:
+        days = int(day_match.group(1))
+    elif week_match:
+        days = int(week_match.group(1)) * 7
+    elif month_match:
+        days = int(month_match.group(1)) * 30
+    elif "last week" in text or "past week" in text:
+        days = 7
+    elif "last month" in text or "past month" in text:
+        days = 30
+    elif "quarter" in text:
+        days = 90
+
+    start_date = end - timedelta(days=max(1, days))
+
+    # 2. Dynamic Provider Extraction
+    detected_provider = None
+    for prov in ("stripe", "adyen", "paypal", "checkout.com", "bank transfer"):
+        if prov in text:
+            detected_provider = prov.title() if prov != "checkout.com" else "Checkout.com"
+            break
+
+    return {
+        "days": days,
+        "period_start": start_date,
+        "period_end": end,
+        "provider": detected_provider,
+        "window_label": f"{days}-day" if days != 1 else "24-hour",
+    }
+
+
 def execute_investigation(
     session: Session, *, organization_id: UUID, user_id: UUID, question: str
 ) -> Investigation:
     """Execute query-aware, multi-skill investigation pipeline with tailored Evidence Graph."""
     plan = plan_investigation(question)
-    end = datetime.now(UTC)
-    start_30d = end - timedelta(days=30)
+    query_ctx = parse_query_context(question)
+    end = query_ctx["period_end"]
+    start_window = query_ctx["period_start"]
+    window_label = query_ctx["window_label"]
+    provider = query_ctx["provider"]
 
     context = ToolContext(organization_id=organization_id, user_id=user_id)
     evidence: list[dict] = []
@@ -59,22 +187,22 @@ def execute_investigation(
             "relation": "routes_to",
         })
 
-    # Baseline Summary
-    summary_30d = get_financial_summary(
-        session, context=context, period_start=start_30d, period_end=end
+    # Dynamic Summary for requested window
+    summary_window = get_financial_summary(
+        session, context=context, period_start=start_window, period_end=end
     )
     evidence.append({
         "type": "fact",
-        "source": "mcp:get_financial_summary_30d",
-        "description": "30-day trailing financial baseline",
-        "data": summary_30d.model_dump(mode="json"),
+        "source": f"mcp:get_financial_summary_{query_ctx['days']}d",
+        "description": f"{window_label.capitalize()} trailing financial baseline",
+        "data": summary_window.model_dump(mode="json"),
     })
 
     primary_skill = plan.primary_skill
 
     # Defaults
-    hypo_title = "Hypothesis: Financial Telemetry Baseline"
-    finding_text = "Operational financial metrics analyzed across policy skills."
+    hypo_title = f"Hypothesis: Financial Telemetry ({window_label.capitalize()} Window)"
+    finding_text = f"Operational financial metrics analyzed across policy skills over {window_label}."
     rec_action = "Continue automated surveillance monitoring."
 
     # 1. SETTLEMENT ANALYSIS
@@ -86,7 +214,7 @@ def execute_investigation(
         evidence.append({
             "type": "fact",
             "source": "mcp:get_settlement_reconciliation",
-            "description": "Settlement ledger status and batch transit delay",
+            "description": f"Settlement ledger status and batch transit delay ({window_label})",
             "data": {
                 "total_batches": len(settlements),
                 "delayed_batches": len(delayed_batches),
@@ -109,10 +237,10 @@ def execute_investigation(
             "relation": "evidence_for",
         })
 
-        hypo_title = "Hypothesis: Payout Clearing & Transit Friction"
+        hypo_title = f"Hypothesis: Payout Clearing & Transit Friction ({window_label.capitalize()})"
         finding_text = (
             f"Settlement audit detected {del_cnt} delayed batches out of {len(settlements)} "
-            "monitored payout cycles. Root cause traced to weekend banking transit windows "
+            f"monitored payout cycles over {window_label}. Root cause traced to weekend banking transit windows "
             "and cross-border clearing reconciliation hold periods."
         )
         rec_action = "Initiate instant payout rails and escalate delayed batches with processor."
@@ -120,12 +248,12 @@ def execute_investigation(
     # 2. REVENUE LEAKAGE
     elif primary_skill == Skill.REVENUE_LEAKAGE:
         leakage = find_revenue_leakage_mcp(
-            session, context=context, period_start=start_30d, period_end=end
+            session, context=context, period_start=start_window, period_end=end
         )
         evidence.append({
             "type": "fact",
             "source": "mcp:find_revenue_leakage",
-            "description": "Order vs captured payment vs refund discrepancy audit",
+            "description": f"Order vs captured payment vs refund discrepancy audit ({window_label})",
             "data": leakage,
         })
 
@@ -143,10 +271,10 @@ def execute_investigation(
         })
 
         ref_val = leakage["refunds_issued"]
-        hypo_title = "Hypothesis: Elevated Return Volume & Reversible Chargebacks"
+        hypo_title = f"Hypothesis: Elevated Return Volume & Leakage ({window_label.capitalize()})"
         finding_text = (
             f"Revenue leakage audit identified ${disc:,.2f} in unreconciled variance "
-            f"and ${ref_val:,.2f} in issued refunds over the trailing 30 days. "
+            f"and ${ref_val:,.2f} in issued refunds over {window_label}. "
             "Discrepancy driven by delayed webhook sync and partial merchant refund authorizations."
         )
         rec_action = (
@@ -156,12 +284,12 @@ def execute_investigation(
     # 3. CASHFLOW ANALYSIS
     elif primary_skill == Skill.CASHFLOW_ANALYSIS:
         cashflow = get_cashflow_statement_mcp(
-            session, context=context, period_start=start_30d, period_end=end
+            session, context=context, period_start=start_window, period_end=end
         )
         evidence.append({
             "type": "fact",
             "source": "mcp:get_cashflow_statement",
-            "description": "Operating cash inflows, outflows, and expense decomposition",
+            "description": f"Operating cash inflows, outflows, and expense decomposition ({window_label})",
             "data": cashflow,
         })
 
@@ -182,21 +310,21 @@ def execute_investigation(
         top_exp = max(
             cashflow.get("expense_breakdown", {}).items(), key=lambda x: x[1], default=("None", 0)
         )
-        hypo_title = "Hypothesis: Operating Outflow & Burn Acceleration"
+        hypo_title = f"Hypothesis: Operating Outflow & Burn Rate ({window_label.capitalize()})"
         finding_text = (
             f"Operating cash flow analysis indicates net cash margin of ${ncf:,.2f} "
-            f"against ${exp:,.2f} in total expenses. Largest outflow category is "
+            f"against ${exp:,.2f} in total expenses over {window_label}. Largest outflow category is "
             f"'{top_exp[0]}' (${top_exp[1]:,.2f}), compressing operating liquidity runway."
         )
         rec_action = "Cap variable operating expenditure and optimize vendor subscription seats."
 
     # 4. ANOMALY INVESTIGATION
     elif primary_skill == Skill.ANOMALY_INVESTIGATION:
-        anomalies = detect_anomalies_mcp(session, context=context, period_start=start_30d)
+        anomalies = detect_anomalies_mcp(session, context=context, period_start=start_window)
         evidence.append({
             "type": "prediction",
             "source": "ml:isolation_forest_anomaly_detection",
-            "description": "Unsupervised payment amount and transaction anomaly inference",
+            "description": f"Unsupervised payment amount and transaction anomaly inference ({window_label})",
             "data": [
                 {
                     "score": float(a.anomaly_score),
@@ -220,33 +348,35 @@ def execute_investigation(
             "relation": "inferred_by",
         })
 
-        hypo_title = "Hypothesis: High-Latency Outlier Transaction Cluster"
+        hypo_title = f"Hypothesis: Outlier Transaction Pattern ({window_label.capitalize()})"
         top_score = max((a.anomaly_score for a in anomalies), default=Decimal("0.912"))
         finding_text = (
             f"Isolation Forest ML anomaly model flagged {anom_cnt} outlier transactions "
-            f"with peak score {top_score:.4f}. Primary variance drivers include abnormal "
+            f"with peak score {top_score:.4f} over {window_label}. Primary variance drivers include abnormal "
             "authorization latency and outlier basket sizing."
         )
         rec_action = "Inspect gateway connection pooling and audit high-latency API roundtrips."
 
     # 5. SCENARIO SIMULATION
     elif primary_skill == Skill.SCENARIO_SIMULATION:
+        parsed = parse_scenario_query(question)
         sim_res = run_scenario_mcp(
-            baseline_revenue=summary_30d.revenue,
-            percent_change=Decimal("-15.0"),
-            payment_failure_change=Decimal("10.0"),
-            refund_change=Decimal("20.0"),
-            delay_days=2,
+            baseline_revenue=summary_window.revenue,
+            percent_change=parsed["percent_change"],
+            payment_failure_change=parsed["payment_failure_change"],
+            refund_change=parsed["refund_change"],
+            delay_days=parsed["delay_days"],
         )
         evidence.append({
             "type": "simulation",
             "source": "service:deterministic_scenario_simulation",
-            "description": "Multi-variable hypothetical revenue stress-test",
+            "description": f"Dynamic simulation for {parsed['assumption_summary']}",
             "data": {
                 "baseline": float(sim_res.baseline_revenue),
                 "projected": float(sim_res.projected_revenue),
                 "impact": float(sim_res.impact),
                 "assumption": sim_res.assumption,
+                "scenario_details": sim_res.scenario_details,
             },
         })
 
@@ -264,33 +394,41 @@ def execute_investigation(
             "relation": "simulated_by",
         })
 
-        hypo_title = "Hypothesis: Stress-Test Volume & Settlement Contraction"
+        hypo_title = parsed["sim_title"]
         finding_text = (
-            f"Deterministic scenario simulation modeled a hypothetical -15% gross contraction "
-            f"with +10% failure surge and +20% refunds, resulting in projected period revenue "
-            f"of ${proj_val:,.2f} (estimated impact: ${imp_val:,.2f})."
+            f"Deterministic scenario simulation modeled a {parsed['assumption_summary']} "
+            f"against a ${float(summary_window.revenue):,.2f} trailing baseline. "
+            f"Modeled projected period net revenue is ${proj_val:,.2f} (net impact: ${imp_val:,.2f})."
         )
-        rec_action = (
-            "Maintain 15% emergency cash buffer and enable automated fallback retry routing."
-        )
+        if imp_val < 0:
+            rec_action = (
+                f"Establish a ${abs(imp_val):,.2f} liquidity reserve buffer to absorb projected "
+                f"downside from {parsed['assumption_summary']}."
+            )
+        else:
+            rec_action = (
+                f"Align operational capacity for projected top-line expansion of +${imp_val:,.2f} "
+                f"from {parsed['assumption_summary']}."
+            )
 
     # 6. PAYMENT ANALYSIS
     elif primary_skill == Skill.PAYMENT_ANALYSIS:
         payment_metrics = get_payment_breakdown_mcp(
-            session, context=context, period_start=start_30d, period_end=end
+            session, context=context, period_start=start_window, period_end=end
         )
         evidence.append({
             "type": "fact",
             "source": "mcp:get_payment_health",
-            "description": "Payment success rate and decline attribution",
+            "description": f"Payment success rate and decline attribution ({window_label})",
             "data": payment_metrics,
         })
 
         sr = payment_metrics["success_rate"] * 100
         fa = payment_metrics["failed"]
+        prov_prefix = f"[{provider}] " if provider else ""
         graph_nodes.append({
             "id": "node-fact-pay",
-            "label": f"Payment Success: {sr:.1f}% ({fa} failed)",
+            "label": f"{prov_prefix}Payment Success: {sr:.1f}% ({fa} failed)",
             "type": "fact",
             "category": "evidence",
         })
@@ -300,12 +438,12 @@ def execute_investigation(
             "relation": "evidence_for",
         })
 
-        hypo_title = "Hypothesis: Gateway Timeout Degradation"
+        hypo_title = f"Hypothesis: {prov_prefix}Gateway Timeout & Decline Analysis"
         timeout_count = payment_metrics.get("failure_reasons", {}).get("provider_timeout", 0)
         finding_text = (
-            f"Payment health analysis detected {fa} failed checkout attempts "
-            f"({100 - sr:.1f}% failure rate), with {timeout_count} provider timeouts "
-            "on card checkout identified as the primary blocker."
+            f"Payment health analysis {('for ' + provider + ' ') if provider else ''}detected {fa} failed checkout attempts "
+            f"({100 - sr:.1f}% failure rate) over {window_label}, with {timeout_count} provider timeouts "
+            "identified as the primary blocker."
         )
         rec_action = "Review provider timeout thresholds and trigger automated retry queue."
 
@@ -314,7 +452,7 @@ def execute_investigation(
         graph_nodes.append({
             "id": "node-fact-rev",
             "label": (
-                f"Gross Revenue: ${summary_30d.revenue:,.2f} ({summary_30d.order_count} orders)"
+                f"Gross Revenue: ${summary_window.revenue:,.2f} ({summary_window.order_count} orders)"
             ),
             "type": "fact",
             "category": "evidence",
@@ -325,12 +463,12 @@ def execute_investigation(
             "relation": "evidence_for",
         })
 
-        hypo_title = "Hypothesis: Topline Revenue & Conversion Baseline"
-        rev_f = summary_30d.revenue
-        ord_c = summary_30d.order_count
-        aov_f = summary_30d.average_order_value
+        hypo_title = f"Hypothesis: Topline Revenue & Conversion ({window_label.capitalize()})"
+        rev_f = summary_window.revenue
+        ord_c = summary_window.order_count
+        aov_f = summary_window.average_order_value
         finding_text = (
-            f"Revenue analysis decomposed 30-day top-line performance: ${rev_f:,.2f} "
+            f"Revenue analysis decomposed {window_label} top-line performance: ${rev_f:,.2f} "
             f"across {ord_c} orders (AOV: ${aov_f:,.2f}). "
             "Gross volume indicates healthy demand with localized conversion drag."
         )

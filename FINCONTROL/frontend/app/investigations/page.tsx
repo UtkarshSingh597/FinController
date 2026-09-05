@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { EvidenceGraphViewer } from "../../components/investigation/evidence-graph";
 import { Badge } from "../../components/ui/badge";
 import { NavSidebar } from "../../components/ui/nav-sidebar";
+import { AnalystIcon, CrossIcon } from "../../components/ui/icons";
 import { getInvestigations, InvestigationRecord } from "../../lib/api";
 
 export default function InvestigationsListPage() {
@@ -29,7 +30,8 @@ export default function InvestigationsListPage() {
             </p>
           </div>
           <Link href="/ai-analyst" className="btn btn-primary">
-            ✦ New Investigation
+            <AnalystIcon size={13} color="currentColor" />
+            <span>New Investigation</span>
           </Link>
         </header>
 
@@ -39,8 +41,8 @@ export default function InvestigationsListPage() {
               <thead>
                 <tr>
                   <th>Investigation ID</th>
-                  <th>Question</th>
-                  <th>Skills Applied</th>
+                  <th>Inquiry Question</th>
+                  <th>Policies Applied</th>
                   <th>Status</th>
                   <th>Created At</th>
                   <th>Actions</th>
@@ -49,21 +51,23 @@ export default function InvestigationsListPage() {
               <tbody>
                 {investigations.map((inv) => (
                   <tr key={inv.id}>
-                    <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px" }}>
+                    <td style={{ fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-secondary)" }}>
                       {inv.id.slice(0, 12)}...
                     </td>
-                    <td style={{ fontWeight: 600 }}>{inv.question}</td>
+                    <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{inv.question}</td>
                     <td>
                       <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                         {(inv.conclusion?.skills || ["financial_analysis"]).map((s) => (
                           <span
                             key={s}
                             style={{
-                              background: "#e8f0ec",
+                              background: "var(--bg-surface-elevated)",
+                              border: "1px solid var(--border-default)",
                               padding: "2px 6px",
-                              borderRadius: 4,
+                              borderRadius: "var(--radius-xs)",
                               fontSize: "11px",
                               fontFamily: "var(--font-mono)",
+                              color: "var(--text-secondary)",
                             }}
                           >
                             {s}
@@ -74,13 +78,13 @@ export default function InvestigationsListPage() {
                     <td>
                       <Badge type="fact">{inv.status}</Badge>
                     </td>
-                    <td style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+                    <td style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "var(--font-mono)" }}>
                       {new Date(inv.created_at).toLocaleString()}
                     </td>
                     <td>
                       <button
                         className="btn btn-secondary"
-                        style={{ padding: "4px 10px", fontSize: "12px" }}
+                        style={{ padding: "3px 8px", fontSize: "11.5px" }}
                         onClick={() => setSelectedInv(inv)}
                       >
                         Inspect Evidence
@@ -93,26 +97,26 @@ export default function InvestigationsListPage() {
           </div>
         </section>
 
-        {/* Detail Inspection Modal / Drawer */}
+        {/* Detail Inspection Drawer */}
         {selectedInv && (
-          <section className="panel" style={{ marginTop: "24px", border: "1px solid #10b981" }}>
+          <section className="panel" style={{ marginTop: "20px", border: "1px solid var(--border-strong)" }}>
             <div className="panel-header">
               <div>
                 <div className="eyebrow">INVESTIGATION DETAILS</div>
                 <h3 className="panel-title">{selectedInv.question}</h3>
               </div>
-              <button className="btn btn-secondary" onClick={() => setSelectedInv(null)}>
-                ✕ Close
+              <button className="btn btn-secondary" onClick={() => setSelectedInv(null)} style={{ fontSize: "12px" }}>
+                Close
               </button>
             </div>
 
-            <div style={{ marginBottom: "18px", fontSize: "14px", lineHeight: "1.6" }}>
-              <div style={{ fontWeight: 600, color: "var(--text-secondary)", marginBottom: 4 }}>
+            <div style={{ marginBottom: "16px", fontSize: "13.5px", lineHeight: "1.6" }}>
+              <div style={{ fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: "var(--font-mono)" }}>
                 Conclusion Summary:
               </div>
-              <p style={{ background: "#f8fdf9", padding: "14px", borderRadius: "6px" }}>
+              <div style={{ background: "var(--bg-surface-elevated)", padding: "14px 16px", borderRadius: "var(--radius-xs)", border: "1px solid var(--border-default)", color: "var(--text-primary)" }}>
                 {selectedInv.conclusion?.text || "No conclusion text."}
-              </p>
+              </div>
             </div>
 
             {/* Evidence Graph */}
@@ -123,16 +127,16 @@ export default function InvestigationsListPage() {
             <div className="eyebrow" style={{ marginTop: "20px", marginBottom: "8px" }}>
               COLLECTED EVIDENCE ITEMS ({selectedInv.evidence.length})
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {selectedInv.evidence.map((item, idx) => (
                 <div key={idx} className="evidence-box">
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                     <Badge type={item.type}>{item.type}</Badge>
-                    <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                       {item.source}
                     </span>
                   </div>
-                  <pre style={{ margin: 0, overflowX: "auto" }}>
+                  <pre style={{ margin: 0, overflowX: "auto", fontSize: "11.5px", color: "var(--text-secondary)" }}>
                     {JSON.stringify(item.data, null, 2)}
                   </pre>
                 </div>

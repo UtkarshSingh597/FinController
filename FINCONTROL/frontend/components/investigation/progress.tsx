@@ -20,32 +20,32 @@ interface StepConfig {
 const steps: StepConfig[] = [
   {
     key: "routing",
-    label: "Skill Policy Routing",
-    subtext: "Orchestrator mapped question to specialized skills",
+    label: "Capability Policy Routing",
+    subtext: "Parsed inquiry context and mapped to domain investigation policies",
     skillTag: "investigation_orchestrator",
   },
   {
     key: "evidence",
-    label: "Authoritative Evidence Collection",
-    subtext: "Queried financial summaries, orders, payments & settlements",
+    label: "Ledger Evidence Collection",
+    subtext: "Retrieved authoritative financial metrics, transactions & settlement records",
     skillTag: "FACT",
   },
   {
     key: "anomalies",
-    label: "ML Anomaly & Risk Evaluation",
-    subtext: "Isolation Forest scored payment amount & latency anomalies",
+    label: "Anomaly & Risk Evaluation",
+    subtext: "Evaluated Isolation Forest distributions and multi-factor stability models",
     skillTag: "PREDICTION",
   },
   {
     key: "synthesis",
-    label: "Controlled Synthesis & Verification",
-    subtext: "Ollama reasoning model evaluated hypotheses against facts",
+    label: "Hypothesis Synthesis & Verification",
+    subtext: "Evaluated causal hypotheses strictly bounded by structured evidence",
     skillTag: "HYPOTHESIS",
   },
   {
     key: "conclusion",
-    label: "Auditable Investigation Published",
-    subtext: "Root cause, financial impact & recommended action prepared",
+    label: "Audit Report Generation",
+    subtext: "Prepared root-cause finding, quantified impact, and operational mitigation",
   },
 ];
 
@@ -59,7 +59,7 @@ export function InvestigationProgress({
   currentStep,
 }: InvestigationProgressProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "12px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "10px" }}>
       {steps.map((step) => {
         const isDone = completed.includes(step.key);
         const isActive = currentStep === step.key && !isDone;
@@ -71,17 +71,32 @@ export function InvestigationProgress({
           : "step-icon step-pending";
 
         return (
-          <div key={step.key} className="investigation-step">
+          <div
+            key={step.key}
+            className="investigation-step"
+            style={{
+              border: isActive
+                ? "1px solid var(--border-strong)"
+                : isDone
+                ? "1px solid var(--border-subtle)"
+                : "1px solid transparent",
+              background: isActive
+                ? "var(--bg-surface-elevated)"
+                : isDone
+                ? "var(--bg-surface-subtle)"
+                : "transparent",
+            }}
+          >
             <div className={iconClass}>
-              {isDone ? "✓" : isActive ? "⋯" : "○"}
+              {isDone ? "✓" : isActive ? "…" : "○"}
             </div>
             <div style={{ flexGrow: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span
                   style={{
                     fontWeight: 600,
-                    fontSize: "13px",
-                    color: isDone ? "var(--text-primary)" : "var(--text-secondary)",
+                    fontSize: "12.5px",
+                    color: isDone ? "var(--text-primary)" : isActive ? "var(--text-primary)" : "var(--text-secondary)",
                   }}
                 >
                   {step.label}
@@ -90,7 +105,7 @@ export function InvestigationProgress({
                   <Badge type={step.skillTag.toLowerCase()}>{step.skillTag}</Badge>
                 )}
               </div>
-              <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>
+              <div style={{ fontSize: "11.5px", color: isDone ? "var(--text-secondary)" : "var(--text-muted)", marginTop: "2px" }}>
                 {step.subtext}
               </div>
             </div>

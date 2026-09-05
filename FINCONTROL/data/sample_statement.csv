@@ -1,0 +1,12 @@
+date,amount,type,description,currency,provider,expense_category
+2026-09-01T09:15:00Z,1450.00,payment,Enterprise SaaS Subscription - Acme Corp,USD,Stripe,
+2026-09-01T10:30:00Z,240.00,payment,Pro Annual Plan - TechFlow Inc,USD,Stripe,
+2026-09-01T11:45:00Z,5800.00,settlement,Daily Batch Settlement Payout,USD,Stripe,
+2026-09-02T08:20:00Z,4500.00,expense,AWS Cloud Infrastructure & Compute,USD,Bank Transfer,cloud_hosting
+2026-09-02T13:10:00Z,890.00,payment,API Tier Upgrade - DataMatrix Ltd,USD,Adyen,
+2026-09-02T14:40:00Z,120.00,refund,Customer Refund - Billing Dispute,USD,Stripe,
+2026-09-03T11:00:00Z,12000.00,expense,Monthly Team Payroll & Engineering,USD,Bank Transfer,payroll
+2026-09-03T15:25:00Z,3200.00,payment,Custom Enterprise Deployment - FinScale,USD,Checkout.com,
+2026-09-04T10:10:00Z,750.00,expense,Datadog Monitoring & Security Suite,USD,Bank Transfer,saas
+2026-09-04T16:50:00Z,1850.00,payment,Annual Platform License - Apex Labs,USD,Stripe,
+2026-09-05T09:00:00Z,6200.00,settlement,Merchant Settlement Transfer,USD,Adyen,

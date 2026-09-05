@@ -11,7 +11,14 @@ export async function uploadCSVStatement(file: File): Promise<CSVIngestionRespon
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch("http://localhost:8000/api/v1/ingestion/csv-statement", {
+  const isBrowser = typeof window !== "undefined";
+  const apiBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    (isBrowser && window.location.port === "3000"
+      ? "http://localhost:8000/api/v1"
+      : "/api/v1");
+
+  const res = await fetch(`${apiBase}/ingestion/csv-statement`, {
     method: "POST",
     headers,
     body: formData,
@@ -19,7 +26,7 @@ export async function uploadCSVStatement(file: File): Promise<CSVIngestionRespon
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "CSV upload failed" }));
-    throw new Error(err.detail || "CSV upload failed");
+    throw new Error(err.detail || `CSV upload failed (HTTP ${res.status})`);
   }
 
   return res.json();

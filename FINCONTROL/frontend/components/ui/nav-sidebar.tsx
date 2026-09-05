@@ -3,19 +3,38 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import {
+  OverviewIcon,
+  AnalystIcon,
+  InvestigationIcon,
+  AnomaliesIcon,
+  RevenueIcon,
+  PaymentsIcon,
+  SettlementsIcon,
+  CashFlowIcon,
+  ScenariosIcon,
+  AlertsIcon,
+  SettingsIcon,
+} from "./icons";
 
-const navItems = [
-  { href: "/", label: "Overview", icon: "❖" },
-  { href: "/ai-analyst", label: "AI Analyst", icon: "✦" },
-  { href: "/investigations", label: "Investigations", icon: "⌕" },
-  { href: "/anomalies", label: "Anomalies", icon: "⚠" },
-  { href: "/revenue", label: "Revenue", icon: "↗" },
-  { href: "/payments", label: "Payments", icon: "💳" },
-  { href: "/settlements", label: "Settlements", icon: "⇄" },
-  { href: "/cash-flow", label: "Cash Flow", icon: "◈" },
-  { href: "/scenarios", label: "Scenarios", icon: "⚡" },
-  { href: "/alerts", label: "Alerts", icon: "🔔" },
-  { href: "/settings", label: "Settings", icon: "⚙" },
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number; color?: string; className?: string }>;
+}
+
+const navItems: NavItem[] = [
+  { href: "/", label: "Overview", icon: OverviewIcon },
+  { href: "/ai-analyst", label: "AI Analyst", icon: AnalystIcon },
+  { href: "/investigations", label: "Investigations", icon: InvestigationIcon },
+  { href: "/anomalies", label: "Anomalies", icon: AnomaliesIcon },
+  { href: "/revenue", label: "Revenue", icon: RevenueIcon },
+  { href: "/payments", label: "Payments", icon: PaymentsIcon },
+  { href: "/settlements", label: "Settlements", icon: SettlementsIcon },
+  { href: "/cash-flow", label: "Cash Flow", icon: CashFlowIcon },
+  { href: "/scenarios", label: "Scenarios", icon: ScenariosIcon },
+  { href: "/alerts", label: "Alerts", icon: AlertsIcon },
+  { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 export function NavSidebar() {
@@ -26,22 +45,35 @@ export function NavSidebar() {
       <div className="sidebar-brand">
         <div className="brand-mark">अ</div>
         <div>
-          <h1 className="brand-title">Artha (अर्थ)</h1>
-          <div className="brand-badge">FINANCIAL CONTROL TOWER</div>
+          <h1 className="brand-title">Artha</h1>
+          <div className="brand-badge">Financial Intelligence</div>
         </div>
+      </div>
+
+      <div className="sidebar-system-status">
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="status-dot"></span>
+          <span style={{ color: "var(--text-secondary)", fontWeight: 600, letterSpacing: "0.04em", fontSize: "10.5px", fontFamily: "var(--font-mono)" }}>
+            OPERATIONAL
+          </span>
+        </div>
+        <span style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "10px" }}>
+          US-EAST
+        </span>
       </div>
 
       <nav className="sidebar-nav">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+          const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
               className={`nav-link ${isActive ? "active" : ""}`}
             >
-              <span style={{ fontSize: "14px", width: "16px", textAlign: "center" }}>
-                {item.icon}
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "18px" }}>
+                <Icon size={15} color={isActive ? "var(--text-primary)" : "var(--text-secondary)"} />
               </span>
               <span>{item.label}</span>
             </Link>
@@ -57,7 +89,6 @@ export function NavSidebar() {
               <div className="user-name">Avery Analyst</div>
               <div className="user-role">NovaPay FinTech · Owner</div>
             </div>
-            <span style={{ marginLeft: "auto", fontSize: "11px", color: "var(--text-secondary)", opacity: 0.7 }}>⇄</span>
           </div>
         </Link>
       </div>

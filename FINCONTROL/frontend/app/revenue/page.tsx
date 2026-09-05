@@ -6,6 +6,7 @@ import { RevenueChart } from "../../components/charts/revenue-chart";
 import { Badge } from "../../components/ui/badge";
 import { KpiCard } from "../../components/ui/kpi-card";
 import { NavSidebar } from "../../components/ui/nav-sidebar";
+import { AnalystIcon } from "../../components/ui/icons";
 import {
   FinancialSummary,
   getFinancialSummary,
@@ -30,7 +31,7 @@ export default function RevenuePage() {
         <header className="page-header">
           <div>
             <div className="eyebrow">FINANCIAL REVENUE INTELLIGENCE</div>
-            <h1 className="page-title">Revenue Intelligence & Trajectory</h1>
+            <h1 className="page-title">Revenue Trajectory & Decomposition</h1>
             <p className="page-subtitle">
               Deterministic revenue decomposition, order volumes, average order value (AOV), and leakage indicators.
             </p>
@@ -39,7 +40,8 @@ export default function RevenuePage() {
             href="/ai-analyst?q=Why+did+revenue+change+over+the+last+30+days"
             className="btn btn-primary"
           >
-            ✦ Investigate Revenue Shifts
+            <AnalystIcon size={13} color="currentColor" />
+            <span>Investigate Revenue Shifts</span>
           </Link>
         </header>
 
@@ -72,13 +74,13 @@ export default function RevenuePage() {
         </section>
 
         {/* Chart Panel */}
-        <section className="panel" style={{ marginBottom: "24px" }}>
+        <section className="panel" style={{ marginBottom: "20px" }}>
           <div className="panel-header">
             <div>
               <div className="eyebrow">REVENUE FLOW</div>
               <h3 className="panel-title">30-Day Daily Trajectory vs Baseline Expectation</h3>
             </div>
-            <Badge type="fact">DETERMINISTIC PERSISTENCE</Badge>
+            <Badge type="fact">FACT</Badge>
           </div>
           <RevenueChart data={trajectory} baseline={8500} />
         </section>
@@ -88,7 +90,7 @@ export default function RevenuePage() {
           <div className="panel-header">
             <div>
               <div className="eyebrow">DECOMPOSITION ANALYSIS</div>
-              <h3 className="panel-title">Primary Revenue Drivers & Leakage Check</h3>
+              <h3 className="panel-title">Primary Revenue Drivers & Leakage Verification</h3>
             </div>
             <Badge type="fact">RECONCILED</Badge>
           </div>
@@ -101,14 +103,14 @@ export default function RevenuePage() {
                   <th>Amount</th>
                   <th>Share of Volume</th>
                   <th>Status</th>
-                  <th>Assessment</th>
+                  <th>Operational Assessment</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td style={{ fontWeight: 600 }}>Card Checkout Inflows</td>
-                  <td style={{ fontFamily: "var(--font-mono)" }}>$242,100.00</td>
-                  <td>85.0%</td>
+                  <td style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>$242,100.00</td>
+                  <td style={{ fontFamily: "var(--font-mono)" }}>85.0%</td>
                   <td>
                     <Badge type="fact">Active</Badge>
                   </td>
@@ -118,8 +120,8 @@ export default function RevenuePage() {
                 </tr>
                 <tr>
                   <td style={{ fontWeight: 600 }}>Alternative Payment Methods</td>
-                  <td style={{ fontFamily: "var(--font-mono)" }}>$42,720.00</td>
-                  <td>15.0%</td>
+                  <td style={{ fontFamily: "var(--font-mono)", color: "var(--text-primary)" }}>$42,720.00</td>
+                  <td style={{ fontFamily: "var(--font-mono)" }}>15.0%</td>
                   <td>
                     <Badge type="fact">Active</Badge>
                   </td>
@@ -127,8 +129,8 @@ export default function RevenuePage() {
                 </tr>
                 <tr>
                   <td style={{ fontWeight: 600 }}>Issued Refunds</td>
-                  <td style={{ fontFamily: "var(--font-mono)", color: "#dc2626" }}>-$14,200.00</td>
-                  <td>-4.9%</td>
+                  <td style={{ fontFamily: "var(--font-mono)", color: "var(--semantic-critical-text)" }}>-$14,200.00</td>
+                  <td style={{ fontFamily: "var(--font-mono)" }}>-4.9%</td>
                   <td>
                     <Badge type="moderate">Elevated</Badge>
                   </td>
@@ -138,15 +140,15 @@ export default function RevenuePage() {
                 </tr>
                 <tr>
                   <td style={{ fontWeight: 600 }}>Net Settled Realization</td>
-                  <td style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "#059669" }}>
+                  <td style={{ fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--semantic-positive-text)" }}>
                     $270,620.00
                   </td>
-                  <td>95.1%</td>
+                  <td style={{ fontFamily: "var(--font-mono)" }}>95.1%</td>
                   <td>
                     <Badge type="fact">Settling</Badge>
                   </td>
                   <td style={{ color: "var(--text-secondary)" }}>
-                    $38,420 currently pending provider transit
+                    $38,420 currently in transit
                   </td>
                 </tr>
               </tbody>
