@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { ArrowRightIcon } from "../../components/ui/icons";
 import { setStoredToken } from "../../lib/api";
 
 export default function AuthPage() {
@@ -12,11 +13,13 @@ export default function AuthPage() {
   const [displayName, setDisplayName] = useState("Avery Analyst");
   const [email, setEmail] = useState("avery@example.com");
   const [password, setPassword] = useState("strong-password-123");
+  const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    setStatusMsg("Deploying tenant environment & entering Control Tower...");
+    setLoading(true);
+    setStatusMsg(isRegister ? "Deploying tenant environment & entering Control Tower..." : "Authenticating session...");
 
     const token = `artha_jwt_${btoa(email)}_${Date.now()}`;
     setStoredToken(token);
@@ -36,45 +39,32 @@ export default function AuthPage() {
       }).catch(() => {});
     } catch {}
 
-    window.location.replace("/");
+    setTimeout(() => {
+      window.location.replace("/");
+    }, 300);
   };
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "var(--bg-app)",
-        padding: "24px",
-      }}
-    >
-      <div
-        className="panel"
-        style={{
-          width: "100%",
-          maxWidth: "440px",
-          padding: "36px 32px",
-          borderRadius: "var(--radius-sm)",
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+    <main className="auth-page">
+      <div className="auth-ambient-glow" style={{ top: "15%", left: "20%" }}></div>
+      <div className="auth-ambient-glow" style={{ bottom: "10%", right: "20%", animationDelay: "-5s", opacity: 0.35 }}></div>
+
+      <div className="auth-card">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "22px" }}>
           <div
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: "var(--radius-xs)",
+              width: 36,
+              height: 36,
+              borderRadius: "var(--radius-sm)",
               background: "var(--bg-surface-elevated)",
-              border: "1px solid var(--border-default)",
+              border: "1px solid var(--border-highlight)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: 700,
               color: "var(--text-primary)",
+              boxShadow: "0 0 12px rgba(34, 197, 94, 0.15)",
             }}
           >
             अ
@@ -87,10 +77,10 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <h1 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "4px", color: "var(--text-primary)" }}>
+        <h1 style={{ fontSize: "21px", fontWeight: 700, marginBottom: "6px", color: "var(--text-primary)" }}>
           {isRegister ? "Create Organization" : "Sign In to Control Tower"}
         </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "20px", lineHeight: "1.45" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "22px", lineHeight: "1.5" }}>
           {isRegister
             ? "Deploy an isolated multi-tenant financial intelligence environment."
             : "Access real-time financial telemetry, ML models, and investigation pipelines."}
@@ -99,23 +89,25 @@ export default function AuthPage() {
         <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           {isRegister && (
             <>
-              <div className="form-group">
+              <div className="form-group stagger-1">
                 <label className="form-label">Organization Name</label>
                 <input
                   type="text"
                   className="form-input"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
+                  placeholder="e.g. Acme FinTech Corp"
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="form-group stagger-2">
                 <label className="form-label">Your Name</label>
                 <input
                   type="text"
                   className="form-input"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="e.g. Avery Analyst"
                   required
                 />
               </div>
@@ -129,6 +121,7 @@ export default function AuthPage() {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
               required
             />
           </div>
@@ -140,6 +133,7 @@ export default function AuthPage() {
               className="form-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
               required
             />
           </div>
@@ -148,24 +142,39 @@ export default function AuthPage() {
             <div
               style={{
                 fontSize: "12px",
-                padding: "8px 10px",
+                padding: "9px 12px",
                 borderRadius: "var(--radius-xs)",
                 background: "var(--semantic-positive-bg)",
                 border: "1px solid var(--semantic-positive-border)",
                 color: "var(--semantic-positive-text)",
                 fontFamily: "var(--font-mono)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
+              className="page-enter"
             >
-              {statusMsg}
+              <span className="spinner" style={{ width: "12px", height: "12px", borderColor: "rgba(74, 222, 128, 0.3)", borderTopColor: "var(--semantic-positive-text)" }}></span>
+              <span>{statusMsg}</span>
             </div>
           )}
 
-          <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "6px" }}>
-            {isRegister ? "Register Organization" : "Sign In"}
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: "100%", marginTop: "6px", padding: "10px" }}>
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <span>{isRegister ? "Register Organization" : "Sign In"}</span>
+                <ArrowRightIcon size={13} color="currentColor" />
+              </>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: "18px", textAlign: "center", fontSize: "12.5px" }}>
+        <div style={{ marginTop: "20px", textAlign: "center", fontSize: "12.5px" }}>
           <button
             type="button"
             onClick={() => setIsRegister(!isRegister)}
@@ -176,14 +185,15 @@ export default function AuthPage() {
               cursor: "pointer",
               fontWeight: 500,
               textDecoration: "underline",
+              transition: "color var(--duration-fast) ease",
             }}
           >
             {isRegister ? "Already have an account? Sign in" : "Need a tenant account? Register organization"}
           </button>
         </div>
 
-        <div style={{ marginTop: "14px", textAlign: "center" }}>
-          <Link href="/" style={{ fontSize: "12px", color: "var(--text-muted)", textDecoration: "none" }}>
+        <div style={{ marginTop: "16px", textAlign: "center" }}>
+          <Link href="/" style={{ fontSize: "12px", color: "var(--text-muted)", textDecoration: "none", transition: "color var(--duration-fast) ease" }}>
             ← Return to Control Tower Overview
           </Link>
         </div>

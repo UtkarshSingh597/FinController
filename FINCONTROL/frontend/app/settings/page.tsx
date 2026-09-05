@@ -31,7 +31,7 @@ export default function SettingsPage() {
     <div className="app-layout">
       <NavSidebar />
 
-      <main className="main-content">
+      <main className="main-content page-enter">
         <header className="page-header">
           <div>
             <div className="eyebrow">SYSTEM CONFIGURATION & SECURITY CONTROLS</div>

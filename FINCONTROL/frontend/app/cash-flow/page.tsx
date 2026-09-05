@@ -19,7 +19,7 @@ export default function CashFlowPage() {
     <div className="app-layout">
       <NavSidebar />
 
-      <main className="main-content">
+      <main className="main-content page-enter">
         <header className="page-header">
           <div>
             <div className="eyebrow">LIQUIDITY & TREASURY INTELLIGENCE</div>

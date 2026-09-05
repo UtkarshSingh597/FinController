@@ -23,7 +23,7 @@ export default function SettlementsPage() {
     <div className="app-layout">
       <NavSidebar />
 
-      <main className="main-content">
+      <main className="main-content page-enter">
         <header className="page-header">
           <div>
             <div className="eyebrow">TREASURY & RECONCILIATION</div>

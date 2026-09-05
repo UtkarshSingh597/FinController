@@ -55,7 +55,7 @@ export default function DashboardPage() {
     <div className="app-layout">
       <NavSidebar />
 
-      <main className="main-content">
+      <main className="main-content page-enter">
         <header className="page-header">
           <div>
             <div className="eyebrow">FINANCIAL INTELLIGENCE CONTROL TOWER</div>
@@ -77,7 +77,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Level 1: Primary Financial Position */}
-        <section className="metrics-grid">
+        <section className="metrics-grid stagger-1">
           <KpiCard
             label="Gross Revenue (30d)"
             value={summary ? `$${Number(summary.revenue).toLocaleString()}` : "$284,820"}
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Level 2: Trends & Critical Operational Signals */}
-        <div className="grid-2col">
+        <div className="grid-2col stagger-2">
           {/* Revenue Chart Panel */}
           <article className="panel">
             <div className="panel-header">
@@ -171,7 +171,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Level 3: Breakdowns & Investigation Inquiry */}
-        <div className="grid-equal">
+        <div className="grid-equal stagger-3">
           {/* Failure Breakdown */}
           <article className="panel">
             <div className="panel-header">
